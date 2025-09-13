@@ -194,8 +194,8 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for pagination user interface
     - _Requirements: 4.1, 7.1_
 
-- [ ] 10. Add advanced features
-  - [ ] 10.1 Implement font selection system
+- [x] 10. Add advanced features
+  - [x] 10.1 Implement font selection system
     - Create FontSelector component with curated fonts
     - Add immediate preview in editor
     - Implement persistent font choice across sessions
@@ -203,7 +203,7 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for font selection functionality
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 10.2 Build scratchpad functionality
+  - [x] 10.2 Build scratchpad functionality
     - Create Scratchpad modal with large text area
     - Implement global persistence across books/chapters
     - Add save/cancel functionality with revert capability
