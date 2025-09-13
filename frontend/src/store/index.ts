@@ -193,6 +193,7 @@ export const useAppStore = create<AppState>()(
           spellCheckEnabled: state.spellCheckEnabled,
           userPreferences: state.userPreferences,
           sidebarCollapsed: state.sidebarCollapsed,
+          scratchpad: state.scratchpad,
         }),
       }
     ),
