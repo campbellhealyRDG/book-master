@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import BookCreator from './books/BookCreator';
+import ChapterCreator from './chapters/ChapterCreator';
 
 interface NavigationItem {
   name: string;
@@ -16,6 +17,7 @@ const Sidebar: React.FC = () => {
   const { sidebarCollapsed, selectedBook, setSidebarCollapsed } = useAppStore();
   const sidebarRef = useRef<HTMLElement>(null);
   const [showBookCreator, setShowBookCreator] = useState(false);
+  const [showChapterCreator, setShowChapterCreator] = useState(false);
 
   const navigation: NavigationItem[] = [
     {
@@ -195,8 +197,14 @@ const Sidebar: React.FC = () => {
                   </div>
                 </button>
                 <button
-                  className="w-full text-left px-2 sm:px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2"
-                  aria-label="Create a new chapter"
+                  onClick={() => selectedBook ? setShowChapterCreator(true) : navigate('/books')}
+                  className={`w-full text-left px-2 sm:px-3 py-2 text-sm rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2 ${
+                    selectedBook
+                      ? 'text-gray-600 hover:bg-gray-50'
+                      : 'text-gray-400 hover:bg-gray-100 cursor-not-allowed'
+                  }`}
+                  aria-label={selectedBook ? "Create a new chapter" : "Select a book first to create a chapter"}
+                  disabled={!selectedBook}
                 >
                   <div className="flex items-center">
                     <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -228,6 +236,18 @@ const Sidebar: React.FC = () => {
           onSuccess={() => {
             setShowBookCreator(false);
             navigate('/books');
+          }}
+        />
+      )}
+
+      {/* Chapter Creator Modal */}
+      {showChapterCreator && selectedBook && (
+        <ChapterCreator
+          bookId={selectedBook.id}
+          onClose={() => setShowChapterCreator(false)}
+          onSuccess={() => {
+            setShowChapterCreator(false);
+            navigate(`/books/${selectedBook.id}`);
           }}
         />
       )}

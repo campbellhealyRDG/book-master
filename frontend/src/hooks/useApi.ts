@@ -93,9 +93,9 @@ export const useChapters = (bookId: number) => {
     queryKey: queryKeys.chapters(bookId),
     queryFn: async () => {
       const response = await chapterAPI.getChapters(bookId);
-      const chapters = response.data;
+      const chapters = response.data.data || response.data;
       setChapters(chapters);
-      return chapters;
+      return { data: chapters };
     },
     enabled: !!bookId,
   });
@@ -120,7 +120,7 @@ export const useCreateChapter = (bookId: number) => {
     mutationFn: (data: CreateChapterData) =>
       chapterAPI.createChapter(bookId, data),
     onSuccess: (response) => {
-      const newChapter = response.data;
+      const newChapter = response.data.data;
       addChapter(newChapter);
       queryClient.invalidateQueries({ queryKey: queryKeys.chapters(bookId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
