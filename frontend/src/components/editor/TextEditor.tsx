@@ -3,6 +3,7 @@ import { useAppStore } from '../../store';
 import { spellCheckService, SpellCheckSuggestion } from '../../services/spellChecker';
 import { paginationService } from '../../services/paginationService';
 import DictionaryManager from '../dictionary/DictionaryManager';
+import FontSelector, { FONT_OPTIONS } from '../ui/FontSelector';
 
 interface TextEditorProps {
   content: string;
@@ -48,6 +49,9 @@ const TextEditor: React.FC<TextEditorProps> = ({
   // Dictionary manager state
   const [showDictionaryManager, setShowDictionaryManager] = useState(false);
 
+  // Font selector state
+  const [showFontSelector, setShowFontSelector] = useState(false);
+
   // Pagination state
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [paginationEnabled, setPaginationEnabled] = useState(false);
@@ -55,6 +59,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
   const setUnsavedChanges = useAppStore((state) => state.setUnsavedChanges);
   const autoSaveEnabled = useAppStore((state) => state.autoSaveEnabled);
   const spellCheckEnabled = useAppStore((state) => state.spellCheckEnabled);
+  const selectedFont = useAppStore((state) => state.selectedFont);
 
   // Pagination logic
   const documentPages = useMemo(() => {
@@ -71,6 +76,11 @@ const TextEditor: React.FC<TextEditorProps> = ({
     if (!documentPages) return null;
     return paginationService.getDocumentStats(documentPages);
   }, [documentPages]);
+
+  // Font styling
+  const currentFontFamily = useMemo(() => {
+    return selectedFont?.fallback || '"Georgia", "Times New Roman", serif';
+  }, [selectedFont]);
 
   // Undo/Redo state
   const [history, setHistory] = useState<string[]>([content]);
@@ -295,6 +305,15 @@ const TextEditor: React.FC<TextEditorProps> = ({
     });
   }, [content]);
 
+  // Initialize default font
+  useEffect(() => {
+    if (!selectedFont) {
+      // Set Georgia as default font
+      const defaultFont = FONT_OPTIONS.find(font => font.id === 'georgia') || FONT_OPTIONS[0];
+      useAppStore.setState({ selectedFont: defaultFont });
+    }
+  }, [selectedFont]);
+
   // Initialize spell checker
   useEffect(() => {
     const initSpellChecker = async () => {
@@ -504,6 +523,22 @@ const TextEditor: React.FC<TextEditorProps> = ({
             </svg>
           </button>
 
+          {/* Font selector button */}
+          <button
+            onClick={() => setShowFontSelector(true)}
+            className="p-2 rounded hover:bg-gray-100 text-gray-600"
+            title={`Font: ${selectedFont?.displayName || 'Georgia'}`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+          </button>
+
           {/* Pagination toggle */}
           <button
             onClick={() => setPaginationEnabled(!paginationEnabled)}
@@ -653,7 +688,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
               style={{
                 fontSize: '16px',
                 lineHeight: '1.6',
-                fontFamily: '"Georgia", "Times New Roman", serif',
+                fontFamily: currentFontFamily,
                 color: 'transparent',
                 minHeight: '600px'
               }}
@@ -690,7 +725,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
             minHeight: '600px',
             fontSize: '16px',
             lineHeight: '1.6',
-            fontFamily: '"Georgia", "Times New Roman", serif'
+            fontFamily: currentFontFamily
           }}
         />
 
@@ -761,6 +796,12 @@ const TextEditor: React.FC<TextEditorProps> = ({
       <DictionaryManager
         isVisible={showDictionaryManager}
         onClose={handleDictionaryManagerClose}
+      />
+
+      {/* Font Selector */}
+      <FontSelector
+        isVisible={showFontSelector}
+        onClose={() => setShowFontSelector(false)}
       />
     </div>
   );
