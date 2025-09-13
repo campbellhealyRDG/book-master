@@ -19,7 +19,7 @@ const Sidebar: React.FC = () => {
   const [showBookCreator, setShowBookCreator] = useState(false);
   const [showChapterCreator, setShowChapterCreator] = useState(false);
 
-  const navigation: NavigationItem[] = [
+  const getNavigationItems = (): NavigationItem[] => [
     {
       name: 'My Books',
       href: '/books',
@@ -33,7 +33,7 @@ const Sidebar: React.FC = () => {
     },
     {
       name: 'Editor',
-      href: '/editor',
+      href: selectedBook ? `/editor/${selectedBook.id}` : '/editor',
       description: 'Write and edit content',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -54,6 +54,8 @@ const Sidebar: React.FC = () => {
       ),
     },
   ];
+
+  const navigation = getNavigationItems();
 
   const isActive = (href: string): boolean => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
