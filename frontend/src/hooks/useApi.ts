@@ -1,0 +1,209 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { bookAPI, chapterAPI, dictionaryAPI, preferencesAPI, scratchpadAPI } from '../services/api';
+import { useAppStore } from '../store';
+import { Book, Chapter, CreateBookData, UpdateBookData, CreateChapterData, UpdateChapterData } from '../types';
+
+// Query keys
+export const queryKeys = {
+  books: ['books'],
+  book: (id: number) => ['books', id],
+  chapters: (bookId: number) => ['chapters', bookId],
+  chapter: (id: number) => ['chapters', id],
+  dictionaryTerms: ['dictionary', 'terms'],
+  preferences: ['preferences'],
+  scratchpad: ['scratchpad'],
+};
+
+// Books hooks
+export const useBooks = () => {
+  const setBooks = useAppStore((state) => state.setBooks);
+
+  return useQuery({
+    queryKey: queryKeys.books,
+    queryFn: async () => {
+      const response = await bookAPI.getBooks();
+      const books = response.data;
+      setBooks(books);
+      return books;
+    },
+  });
+};
+
+export const useBook = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.book(id),
+    queryFn: async () => {
+      const response = await bookAPI.getBook(id);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useCreateBook = () => {
+  const queryClient = useQueryClient();
+  const addBook = useAppStore((state) => state.addBook);
+
+  return useMutation({
+    mutationFn: (data: CreateBookData) => bookAPI.createBook(data),
+    onSuccess: (response) => {
+      const newBook = response.data;
+      addBook(newBook);
+      queryClient.invalidateQueries({ queryKey: queryKeys.books });
+    },
+  });
+};
+
+export const useUpdateBook = () => {
+  const queryClient = useQueryClient();
+  const updateBook = useAppStore((state) => state.updateBook);
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateBookData }) =>
+      bookAPI.updateBook(id, data),
+    onSuccess: (response, variables) => {
+      const updatedBook = response.data;
+      updateBook(variables.id, updatedBook);
+      queryClient.invalidateQueries({ queryKey: queryKeys.books });
+      queryClient.invalidateQueries({ queryKey: queryKeys.book(variables.id) });
+    },
+  });
+};
+
+export const useDeleteBook = () => {
+  const queryClient = useQueryClient();
+  const removeBook = useAppStore((state) => state.removeBook);
+
+  return useMutation({
+    mutationFn: (id: number) => bookAPI.deleteBook(id),
+    onSuccess: (_, id) => {
+      removeBook(id);
+      queryClient.invalidateQueries({ queryKey: queryKeys.books });
+      queryClient.removeQueries({ queryKey: queryKeys.book(id) });
+      queryClient.removeQueries({ queryKey: queryKeys.chapters(id) });
+    },
+  });
+};
+
+// Chapters hooks
+export const useChapters = (bookId: number) => {
+  const setChapters = useAppStore((state) => state.setChapters);
+
+  return useQuery({
+    queryKey: queryKeys.chapters(bookId),
+    queryFn: async () => {
+      const response = await chapterAPI.getChapters(bookId);
+      const chapters = response.data;
+      setChapters(chapters);
+      return chapters;
+    },
+    enabled: !!bookId,
+  });
+};
+
+export const useChapter = (id: number) => {
+  return useQuery({
+    queryKey: queryKeys.chapter(id),
+    queryFn: async () => {
+      const response = await chapterAPI.getChapter(id);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useCreateChapter = () => {
+  const queryClient = useQueryClient();
+  const addChapter = useAppStore((state) => state.addChapter);
+
+  return useMutation({
+    mutationFn: ({ bookId, data }: { bookId: number; data: CreateChapterData }) =>
+      chapterAPI.createChapter(bookId, data),
+    onSuccess: (response, variables) => {
+      const newChapter = response.data;
+      addChapter(newChapter);
+      queryClient.invalidateQueries({ queryKey: queryKeys.chapters(variables.bookId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.books });
+    },
+  });
+};
+
+export const useUpdateChapter = () => {
+  const queryClient = useQueryClient();
+  const updateChapter = useAppStore((state) => state.updateChapter);
+  const setUnsavedChanges = useAppStore((state) => state.setUnsavedChanges);
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateChapterData }) =>
+      chapterAPI.updateChapter(id, data),
+    onSuccess: (response, variables) => {
+      const updatedChapter = response.data;
+      updateChapter(variables.id, updatedChapter);
+      setUnsavedChanges(false);
+      queryClient.invalidateQueries({ queryKey: queryKeys.chapter(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chapters(updatedChapter.bookId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.books });
+    },
+  });
+};
+
+export const useDeleteChapter = () => {
+  const queryClient = useQueryClient();
+  const removeChapter = useAppStore((state) => state.removeChapter);
+
+  return useMutation({
+    mutationFn: (id: number) => chapterAPI.deleteChapter(id),
+    onSuccess: (response, id) => {
+      const deletedChapter = response.data;
+      removeChapter(id);
+      queryClient.invalidateQueries({ queryKey: queryKeys.chapters(deletedChapter.bookId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.books });
+      queryClient.removeQueries({ queryKey: queryKeys.chapter(id) });
+    },
+  });
+};
+
+// Dictionary hooks
+export const useDictionaryTerms = (params?: { category?: string; active?: boolean }) => {
+  const setDictionaryTerms = useAppStore((state) => state.setDictionaryTerms);
+
+  return useQuery({
+    queryKey: [...queryKeys.dictionaryTerms, params],
+    queryFn: async () => {
+      const response = await dictionaryAPI.getTerms(params);
+      const terms = response.data;
+      setDictionaryTerms(terms);
+      return terms;
+    },
+  });
+};
+
+// Preferences hooks
+export const usePreferences = () => {
+  const setUserPreferences = useAppStore((state) => state.setUserPreferences);
+
+  return useQuery({
+    queryKey: queryKeys.preferences,
+    queryFn: async () => {
+      const response = await preferencesAPI.getPreferences();
+      const preferences = response.data;
+      setUserPreferences(preferences);
+      return preferences;
+    },
+  });
+};
+
+// Scratchpad hooks
+export const useScratchpad = () => {
+  const setScratchpad = useAppStore((state) => state.setScratchpad);
+
+  return useQuery({
+    queryKey: queryKeys.scratchpad,
+    queryFn: async () => {
+      const response = await scratchpadAPI.getScratchpad();
+      const scratchpad = response.data;
+      setScratchpad(scratchpad);
+      return scratchpad;
+    },
+  });
+};
