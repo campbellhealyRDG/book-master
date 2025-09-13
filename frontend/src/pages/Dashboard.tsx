@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
                       )}
                     </svg>
                     <h3 className="text-xl font-semibold text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
-                      {selectedBook ? 'Chapters' : 'My Books'}
+                      {selectedBook ? 'Books' : 'My Books'}
                     </h3>
                   </div>
                   <p className="text-gray-600 group-hover:text-gray-700 transition-colors">
