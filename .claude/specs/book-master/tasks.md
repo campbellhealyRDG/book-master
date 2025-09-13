@@ -12,9 +12,8 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
 
 ### For each task:
 
-    - Create a new branch prepended with `feature-` from the main branch and switch to this new branch **Before any code change**.
-    -  ALL DOCUMENTATION has to be written in BRITISH ENGLISH
-    - On completing a feature use the .claude/commands/documentation/feature-documenter to document that feature in .claude/docs/features
+  - Create a new branch prepended with `feature-` from the main branch
+  - Switch to this new branch **Before any code change**
 
 ## Exception Cases
 
@@ -24,16 +23,14 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
 
 ## After finishing the task 
 
-- Use the best mcp, and agents to commit, push the new branch, 
-- Submit a Merge/Pull Request. 
-- Test the new branch, If successful Return to the main branch
+-  ALL DOCUMENTATION has to be written in BRITISH ENGLISH
+- Use git to commit, push the new feature branch, 
+- Use git to submit a Pull Request. 
+- Test the new branch,
+- If successful Return to the main branch
 - Update the tasks.md.
+- Use feature-documenter to document the feature in .claude/docs/features
 - Update the relevant `CLAUDE.md` files.
-
-## Task Groups
-
-- Update the status table in tasks.md after each task.
-- Mark off the Quality Control Checkpoints when completed.
 
 ## MCP Tool Integration Protocol
 
@@ -45,7 +42,6 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
 ## START EDIT FROM HERE
 
 ## Implementation Plan
-
 
 - [x] 1. Set up project structure and core infrastructure
   - Create directory structure for frontend and backend components
@@ -69,15 +65,15 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Create UserPreferences model with default values
     - _Requirements: 1.2, 1.3, 3.1_
 
-- [ ] 3. Build core backend API infrastructure
-  - [ ] 3.1 Set up Express/FastAPI server with middleware
+- [x] 3. Build core backend API infrastructure
+  - [x] 3.1 Set up Express/FastAPI server with middleware
     - Configure CORS for frontend communication
     - Set up request logging and error handling middleware
     - Implement basic routing structure for all API endpoints
     - Add request validation middleware
     - _Requirements: All backend requirements_
 
-  - [ ] 3.2 Implement book management API endpoints
+  - [x] 3.2 Implement book management API endpoints
     - Code GET /api/books endpoint with book listing
     - Code POST /api/books endpoint with validation
     - Code PUT /api/books/:id endpoint for updates
@@ -85,7 +81,7 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write unit tests for all book management endpoints
     - _Requirements: 1.2, 1.3_
 
-  - [ ] 3.3 Implement chapter management API endpoints
+  - [x] 3.3 Implement chapter management API endpoints
     - Code GET /api/books/:bookId/chapters endpoint
     - Code POST /api/books/:bookId/chapters with auto-numbering
     - Code GET/PUT/DELETE /api/chapters/:id endpoints
