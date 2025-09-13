@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../store';
 import { Book } from '../../types';
-import { useBooks } from '../../hooks/useApi';
+import { useBooks, useDeleteBook } from '../../hooks/useApi';
 import BookCreator from './BookCreator';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +21,7 @@ const BookList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: booksData, isLoading, error, refetch } = useBooks();
+  const deleteBookMutation = useDeleteBook();
 
   useEffect(() => {
     if (booksData) {
@@ -45,17 +46,15 @@ const BookList: React.FC = () => {
 
   const handleDeleteBook = async (bookId: number, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     if (window.confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
       setDeletingBookId(bookId);
       try {
-        // API call will be handled by the hook
-        removeBook(bookId);
+        await deleteBookMutation.mutateAsync(bookId);
         if (selectedBookId === bookId) {
           setSelectedBookId(null);
           setSelectedBook(null);
         }
-        await refetch();
       } catch (error) {
         console.error('Failed to delete book:', error);
         alert('Failed to delete book. Please try again.');

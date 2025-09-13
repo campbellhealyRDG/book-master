@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAppStore } from '../../store';
 import { Chapter } from '../../types';
-import { useChapters } from '../../hooks/useApi';
+import { useChapters, useDeleteChapter } from '../../hooks/useApi';
 import { useLazyContent } from '../../hooks/useLazyContent';
 import ChapterCreator from './ChapterCreator';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -27,6 +27,7 @@ const ChapterList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: chaptersData, isLoading, error, refetch } = useChapters(bookIdNum!);
+  const deleteChapterMutation = useDeleteChapter();
 
   // Initialize lazy content management
   const {
@@ -64,16 +65,15 @@ const ChapterList: React.FC = () => {
 
   const handleDeleteChapter = async (chapterId: number, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     if (window.confirm('Are you sure you want to delete this chapter? This action cannot be undone.')) {
       setDeletingChapterId(chapterId);
       try {
-        removeChapter(chapterId);
+        await deleteChapterMutation.mutateAsync(chapterId);
         if (selectedChapterId === chapterId) {
           setSelectedChapterId(null);
           setSelectedChapter(null);
         }
-        await refetch();
       } catch (error) {
         console.error('Failed to delete chapter:', error);
         alert('Failed to delete chapter. Please try again.');
