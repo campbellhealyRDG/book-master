@@ -3,6 +3,7 @@ import { Outlet, Link } from 'react-router-dom';
 import { useAppStore } from '../store';
 import Sidebar from './Sidebar';
 import NavigationBar from './NavigationBar';
+import ScrollToTopButton from './ScrollToTopButton';
 
 const AppLayout: React.FC = () => {
   const { sidebarCollapsed, setSidebarCollapsed } = useAppStore();
@@ -126,6 +127,9 @@ const AppLayout: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton />
     </div>
   );
 };
