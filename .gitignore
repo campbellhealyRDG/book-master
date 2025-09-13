@@ -49,6 +49,7 @@ desktop.ini
 # Claude Code artifacts - should not be committed to remote
 .claude/
 !.claude/specs/
+!.claude/docs/
 
 # Local settings and temporary files
 *.tmp
