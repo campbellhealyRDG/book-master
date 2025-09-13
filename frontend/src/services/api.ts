@@ -70,10 +70,10 @@ export const bookAPI = {
 
 // Chapter API endpoints
 export const chapterAPI = {
-  getChapters: (bookId: number) => apiClient.get(`/books/${bookId}/chapters`),
+  getChapters: (bookId: number) => apiClient.get(`/chapters/books/${bookId}/chapters`),
   getChapter: (id: number) => apiClient.get(`/chapters/${id}`),
   createChapter: (bookId: number, data: { title: string; content?: string }) =>
-    apiClient.post(`/books/${bookId}/chapters`, data),
+    apiClient.post(`/chapters/books/${bookId}/chapters`, data),
   updateChapter: (id: number, data: { title?: string; content?: string }) =>
     apiClient.put(`/chapters/${id}`, data),
   deleteChapter: (id: number) => apiClient.delete(`/chapters/${id}`),
