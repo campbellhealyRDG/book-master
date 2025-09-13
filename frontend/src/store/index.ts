@@ -186,7 +186,7 @@ export const useAppStore = create<AppState>()(
       }),
       {
         name: 'book-master-store',
-        // Only persist user preferences, not transient data
+        // Persist user preferences and selected book for continuity
         partialize: (state) => ({
           selectedFont: state.selectedFont,
           autoSaveEnabled: state.autoSaveEnabled,
@@ -194,6 +194,8 @@ export const useAppStore = create<AppState>()(
           userPreferences: state.userPreferences,
           sidebarCollapsed: state.sidebarCollapsed,
           scratchpad: state.scratchpad,
+          selectedBook: state.selectedBook,
+          selectedBookId: state.selectedBookId,
         }),
       }
     ),
