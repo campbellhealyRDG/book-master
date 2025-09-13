@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useAppStore } from '../store';
 import Sidebar from './Sidebar';
+import NavigationBar from './NavigationBar';
 
 const AppLayout: React.FC = () => {
   const { sidebarCollapsed, setSidebarCollapsed } = useAppStore();
@@ -83,9 +84,8 @@ const AppLayout: React.FC = () => {
                 </Link>
               </div>
             </div>
-            <div className="text-right hidden md:block ml-4 flex-shrink-0">
-              <p className="text-sm font-medium">Welcome to Book Master</p>
-              <p className="text-xs text-chrome-green-100">Manuscript editing made simple</p>
+            <div className="ml-4 flex-shrink-0">
+              <NavigationBar />
             </div>
           </div>
         </div>
