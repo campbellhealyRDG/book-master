@@ -8,7 +8,7 @@ use memory **Always read the opening paragraph before starting a new task.**
 use filesystem read_text_file(.claude\specs\book-master\tasks.md)
 use the best mcp, and agents to STRICTLY follow all instructions and action each task.
 
-##  Follow instructions exactly:
+##  Strictly follow instructions exactly:
 
 ### For each task:
 
