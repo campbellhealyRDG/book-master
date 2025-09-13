@@ -11,7 +11,7 @@ interface ChapterCreatorProps {
 const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<CreateChapterData>({
     title: '',
-    content: ''
+    content: 'Start writing your chapter here...\n\nThis is the beginning of your new chapter. You can edit or replace this text with your own content.'
   });
   const [errors, setErrors] = useState<Partial<CreateChapterData>>({});
   
@@ -105,7 +105,7 @@ const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSucc
           <div className="mb-6">
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
               Initial Content
-              <span className="ml-2 text-xs text-gray-500">(Optional - you can add content later in the editor)</span>
+              <span className="ml-2 text-xs text-chrome-green-600">(This will be automatically saved to your book)</span>
             </label>
             <textarea
               id="content"
@@ -117,12 +117,15 @@ const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSucc
               placeholder="Start writing your chapter content here..."
             />
             <div className="mt-1 flex justify-between text-xs text-gray-500">
-              <span>
+              <span className="text-chrome-green-600">
                 {formData.content ? formData.content.split(/\s+/).filter(word => word.length > 0).length : 0} words
               </span>
               <span>
                 {formData.content?.length || 0} characters
               </span>
+            </div>
+            <div className="mt-2 p-2 bg-chrome-green-50 border border-chrome-green-200 rounded text-xs text-chrome-green-700">
+              <strong>💾 Auto-save:</strong> Your chapter will be immediately saved to the book and opened in the editor for continued writing.
             </div>
           </div>
 
