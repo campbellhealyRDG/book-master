@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useRef, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
+import BookCreator from './books/BookCreator';
 
 interface NavigationItem {
   name: string;
@@ -11,8 +12,10 @@ interface NavigationItem {
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { sidebarCollapsed, selectedBook, setSidebarCollapsed } = useAppStore();
   const sidebarRef = useRef<HTMLElement>(null);
+  const [showBookCreator, setShowBookCreator] = useState(false);
 
   const navigation: NavigationItem[] = [
     {
@@ -180,6 +183,7 @@ const Sidebar: React.FC = () => {
               </h3>
               <div className="mt-2 space-y-1" role="group" aria-labelledby="quick-actions-heading">
                 <button
+                  onClick={() => setShowBookCreator(true)}
                   className="w-full text-left px-2 sm:px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2"
                   aria-label="Create a new book"
                 >
@@ -216,6 +220,17 @@ const Sidebar: React.FC = () => {
           </div>
         )}
       </aside>
+
+      {/* Book Creator Modal */}
+      {showBookCreator && (
+        <BookCreator
+          onClose={() => setShowBookCreator(false)}
+          onSuccess={() => {
+            setShowBookCreator(false);
+            navigate('/books');
+          }}
+        />
+      )}
     </>
   );
 };
