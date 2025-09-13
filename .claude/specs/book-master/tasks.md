@@ -14,6 +14,10 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
 
   - Create a new branch prepended with `feature-` from the main branch
   - Switch to this new branch **Before any code change**
+  - For any changes you make to the code  ensure there are no adverse     
+  affects anywhere else in the codebase 
+  - if there adverse affets to the codebase, do not write code changes 
+  - Change code when you have a plan confidence=0.95 will succeed first time.
 
 ## Exception Cases
 
@@ -23,11 +27,11 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
 
 ## After finishing the task 
 
--  ALL DOCUMENTATION has to be written in BRITISH ENGLISH
 - Use git to commit, push the new feature branch, 
 - Use git to submit a Pull Request. 
 - Test the new branch,
 - If successful Return to the main branch
+- ALL DOCUMENTATION has to be written in BRITISH ENGLISH
 - Update the tasks.md.
 - Use feature-documenter to document the feature in .claude/docs/features
 - Update the relevant `CLAUDE.md` files.
