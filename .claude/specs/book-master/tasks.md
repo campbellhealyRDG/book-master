@@ -211,16 +211,16 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for scratchpad persistence
     - _Requirements: 6.1, 6.2_
 
-- [ ] 11. Create export functionality
-  - [ ] 11.1 Implement backend export generation
+- [x] 11. Create export functionality
+  - [x] 11.1 Implement backend export generation
     - Code POST /api/books/:id/export endpoint
     - Add support for TXT and Markdown formats
-    - Implement standardized filename generation
+    - Implement standardised filename generation
     - Include book metadata and proper chapter formatting
     - Write unit tests for export functionality
     - _Requirements: 1.3, 6.2_
 
-  - [ ] 11.2 Build export user interface
+  - [x] 11.2 Build export user interface
     - Create BookExporter component with format selection
     - Add export progress indication
     - Implement file download handling
