@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '../store';
 
@@ -11,7 +11,8 @@ interface NavigationItem {
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
-  const { sidebarCollapsed, selectedBook } = useAppStore();
+  const { sidebarCollapsed, selectedBook, setSidebarCollapsed } = useAppStore();
+  const sidebarRef = useRef<HTMLElement>(null);
 
   const navigation: NavigationItem[] = [
     {
@@ -19,8 +20,8 @@ const Sidebar: React.FC = () => {
       href: '/dashboard',
       description: 'Overview and statistics',
       icon: (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
@@ -30,8 +31,8 @@ const Sidebar: React.FC = () => {
       href: '/books',
       description: 'Manage your manuscripts',
       icon: (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       ),
@@ -41,8 +42,8 @@ const Sidebar: React.FC = () => {
       href: '/editor',
       description: 'Write and edit content',
       icon: (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       ),
@@ -52,8 +53,8 @@ const Sidebar: React.FC = () => {
       href: '/dictionary',
       description: 'Custom word management',
       icon: (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
         </svg>
       ),
@@ -67,33 +68,67 @@ const Sidebar: React.FC = () => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !sidebarCollapsed && window.innerWidth < 768) {
+        setSidebarCollapsed(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [sidebarCollapsed, setSidebarCollapsed]);
+
+  // Focus management for mobile sidebar
+  useEffect(() => {
+    if (!sidebarCollapsed && window.innerWidth < 768) {
+      // Focus the first navigation item when sidebar opens on mobile
+      const firstNavLink = sidebarRef.current?.querySelector('nav a');
+      if (firstNavLink instanceof HTMLElement) {
+        firstNavLink.focus();
+      }
+    }
+  }, [sidebarCollapsed]);
+
   return (
     <>
       {/* Sidebar */}
       <aside
+        id="main-sidebar"
+        ref={sidebarRef}
         className={`
           bg-white shadow-lg border-r border-gray-200 transition-all duration-300 z-15
           ${sidebarCollapsed ? 'w-16' : 'w-64'}
           ${sidebarCollapsed ? 'fixed md:relative' : 'fixed md:relative'}
           h-full
         `}
+        role="navigation"
+        aria-label="Main navigation"
+        aria-hidden={sidebarCollapsed}
       >
         {/* Navigation */}
-        <nav className="p-4 h-full overflow-y-auto">
-          <div className="space-y-2">
+        <nav
+          className="p-3 sm:p-4 h-full overflow-y-auto focus-within:outline-none"
+          role="navigation"
+          aria-label="Primary navigation menu"
+        >
+          <div className="space-y-1 sm:space-y-2">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 className={`
-                  group flex items-center px-3 py-3 rounded-lg text-sm font-medium 
-                  transition-all duration-200 hover:scale-[1.02] transform
+                  group flex items-center px-2 sm:px-3 py-2 sm:py-3 rounded-lg text-sm font-medium
+                  transition-all duration-200 hover:scale-[1.02] transform focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2
                   ${isActive(item.href)
                     ? 'bg-chrome-green-100 text-chrome-green-700 shadow-sm border border-chrome-green-200'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }
                 `}
-                title={sidebarCollapsed ? item.name : ''}
+                title={sidebarCollapsed ? `${item.name}: ${item.description}` : ''}
+                aria-label={sidebarCollapsed ? `${item.name}: ${item.description}` : undefined}
+                aria-current={isActive(item.href) ? 'page' : undefined}
               >
                 <div className="flex-shrink-0">
                   {item.icon}
@@ -117,23 +152,32 @@ const Sidebar: React.FC = () => {
 
           {/* Current Book Section */}
           {!sidebarCollapsed && selectedBook && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+              <h3
+                className="px-2 sm:px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                id="current-book-heading"
+              >
                 Current Book
               </h3>
-              <div className="mt-2 px-3 py-2 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-900 truncate">
+              <div
+                className="mt-2 px-2 sm:px-3 py-2 bg-gray-50 rounded-lg"
+                role="region"
+                aria-labelledby="current-book-heading"
+              >
+                <p className="text-sm font-medium text-gray-900 truncate" title={selectedBook.title}>
                   {selectedBook.title}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-gray-500 truncate" title={`by ${selectedBook.author}`}>
                   by {selectedBook.author}
                 </p>
                 <div className="mt-2 flex items-center text-xs text-gray-400">
-                  <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  {selectedBook.chapterCount || 0} chapters
+                  <span aria-label={`${selectedBook.chapterCount || 0} chapters in this book`}>
+                    {selectedBook.chapterCount || 0} chapters
+                  </span>
                 </div>
               </div>
             </div>
@@ -141,25 +185,34 @@ const Sidebar: React.FC = () => {
 
           {/* Quick Actions */}
           {!sidebarCollapsed && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+              <h3
+                className="px-2 sm:px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                id="quick-actions-heading"
+              >
                 Quick Actions
               </h3>
-              <div className="mt-2 space-y-1">
-                <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
+              <div className="mt-2 space-y-1" role="group" aria-labelledby="quick-actions-heading">
+                <button
+                  className="w-full text-left px-2 sm:px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2"
+                  aria-label="Create a new book"
+                >
                   <div className="flex items-center">
-                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    New Book
+                    <span>New Book</span>
                   </div>
                 </button>
-                <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
+                <button
+                  className="w-full text-left px-2 sm:px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2"
+                  aria-label="Create a new chapter"
+                >
                   <div className="flex items-center">
-                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    New Chapter
+                    <span>New Chapter</span>
                   </div>
                 </button>
               </div>
@@ -169,7 +222,7 @@ const Sidebar: React.FC = () => {
 
         {/* Footer */}
         {!sidebarCollapsed && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t border-gray-200">
+          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gray-50 border-t border-gray-200">
             <div className="text-center">
               <p className="text-xs text-gray-500">Book Master v1.0</p>
               <p className="text-xs text-gray-400">Professional Editor</p>

@@ -228,8 +228,8 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for export user interface
     - _Requirements: 1.3, 6.2_
 
-- [ ] 12. Add markdown preview capability
-  - [ ] 12.1 Implement markdown rendering
+- [x] 12. Add markdown preview capability
+  - [x] 12.1 Implement markdown rendering
     - Integrate markdown parsing library
     - Add Ctrl+M keyboard shortcut activation
     - Support headers, formatting, lists, and special elements
@@ -237,7 +237,7 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for markdown rendering
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 12.2 Create markdown preview interface
+  - [x] 12.2 Create markdown preview interface
     - Build MarkdownPreview component with rendered output
     - Add toggle between edit and preview modes
     - Implement synchronized scrolling if possible
