@@ -8,7 +8,7 @@ use memory **Always read the opening paragraph before starting a new task.**
 use filesystem read_text_file(.claude\specs\book-master\tasks.md)
 use the best mcp, and agents to STRICTLY follow all instructions and action each task.
 
-##  Follow instructions exactly:
+##  Strictly follow instructions exactly:
 
 ### For each task:
 
@@ -54,15 +54,15 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
   - Configure SQLite database connection and basic schema
   - _Requirements: All system requirements_
 
-- [ ] 2. Implement database schema and data models
-  - [ ] 2.1 Create database migration scripts for core entities
+- [x] 2. Implement database schema and data models
+  - [x] 2.1 Create database migration scripts for core entities
     - Write migration for Book entity with title, author, timestamps
     - Write migration for Chapter entity with book relationship
     - Write migration for DictionaryTerm entity with categories
     - Write migration for UserPreferences and Scratchpad entities
     - _Requirements: 1.2, 1.3, 3.1, 6.1_
 
-  - [ ] 2.2 Implement data model classes with validation
+  - [x] 2.2 Implement data model classes with validation
     - Create Book model with title validation and computed fields
     - Create Chapter model with content handling and word counting
     - Create DictionaryTerm model with category validation
