@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 import { Book, Chapter, DictionaryTerm, Scratchpad, AppError } from '../types';
+import { FontOption } from '../components/ui/FontSelector';
 
 // Application state interface
 interface AppState {
@@ -32,6 +33,7 @@ interface AppState {
   unsavedChanges: boolean;
   autoSaveEnabled: boolean;
   spellCheckEnabled: boolean;
+  selectedFont: FontOption | null;
 
   // Actions
   setBooks: (books: Book[]) => void;
@@ -68,12 +70,14 @@ interface AppState {
   setUnsavedChanges: (hasChanges: boolean) => void;
   setAutoSaveEnabled: (enabled: boolean) => void;
   setSpellCheckEnabled: (enabled: boolean) => void;
+  setSelectedFont: (font: FontOption | null) => void;
 }
 
-// Create the store
+// Create the store with persistence for user preferences
 export const useAppStore = create<AppState>()(
   devtools(
-    (set, get) => ({
+    persist(
+      (set, get) => ({
       // Initial state
       books: [],
       selectedBook: null,
@@ -90,6 +94,7 @@ export const useAppStore = create<AppState>()(
       unsavedChanges: false,
       autoSaveEnabled: true,
       spellCheckEnabled: true,
+      selectedFont: null,
 
       // Book actions
       setBooks: (books) => set({ books }),
@@ -177,9 +182,23 @@ export const useAppStore = create<AppState>()(
       setUnsavedChanges: (hasChanges) => set({ unsavedChanges: hasChanges }),
       setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),
       setSpellCheckEnabled: (enabled) => set({ spellCheckEnabled: enabled }),
-    }),
+        setSelectedFont: (font) => set({ selectedFont: font }),
+      }),
+      {
+        name: 'book-master-store',
+        // Only persist user preferences, not transient data
+        partialize: (state) => ({
+          selectedFont: state.selectedFont,
+          autoSaveEnabled: state.autoSaveEnabled,
+          spellCheckEnabled: state.spellCheckEnabled,
+          userPreferences: state.userPreferences,
+          sidebarCollapsed: state.sidebarCollapsed,
+          scratchpad: state.scratchpad,
+        }),
+      }
+    ),
     {
-      name: 'book-master-store',
+      name: 'book-master-devtools',
     }
   )
 );
