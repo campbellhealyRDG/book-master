@@ -22,9 +22,9 @@ export const useBooks = () => {
     queryKey: queryKeys.books,
     queryFn: async () => {
       const response = await bookAPI.getBooks();
-      const books = response.data;
+      const books = response.data.data || response.data;
       setBooks(books);
-      return books;
+      return { data: books };
     },
   });
 };
@@ -47,7 +47,7 @@ export const useCreateBook = () => {
   return useMutation({
     mutationFn: (data: CreateBookData) => bookAPI.createBook(data),
     onSuccess: (response) => {
-      const newBook = response.data;
+      const newBook = response.data.data;
       addBook(newBook);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
     },
