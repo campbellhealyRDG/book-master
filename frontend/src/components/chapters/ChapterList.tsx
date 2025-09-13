@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAppStore } from '../../store';
 import { Chapter } from '../../types';
 import { useChapters } from '../../hooks/useApi';
+import { useLazyContent } from '../../hooks/useLazyContent';
 import ChapterCreator from './ChapterCreator';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -27,11 +28,33 @@ const ChapterList: React.FC = () => {
   
   const { data: chaptersData, isLoading, error, refetch } = useChapters(bookIdNum!);
 
+  // Initialize lazy content management
+  const {
+    lazyChapters,
+    loadFullContent,
+    preloadContent,
+    getSearchableContent,
+    isLoading: isContentLoading,
+    isFullyLoaded
+  } = useLazyContent(chapters, {
+    previewLength: 150,
+    loadDelay: 300,
+    cacheSize: 15
+  });
+
   useEffect(() => {
     if (chaptersData) {
       setChapters(chaptersData.data || []);
     }
   }, [chaptersData, setChapters]);
+
+  // Preload content for visible chapters
+  useEffect(() => {
+    if (lazyChapters.length > 0) {
+      const visibleChapterIds = lazyChapters.slice(0, 5).map(ch => ch.id);
+      preloadContent(visibleChapterIds);
+    }
+  }, [lazyChapters, preloadContent]);
 
   const handleSelectChapter = (chapter: Chapter) => {
     setSelectedChapterId(chapter.id);
@@ -60,8 +83,16 @@ const ChapterList: React.FC = () => {
     }
   };
 
-  const handleToggleExpand = (chapterId: number, event: React.MouseEvent) => {
+  const handleToggleExpand = useCallback(async (chapterId: number, event: React.MouseEvent) => {
     event.stopPropagation();
+
+    const isExpanding = !expandedChapters.has(chapterId);
+
+    // If expanding and content not fully loaded, load it
+    if (isExpanding && !isFullyLoaded(chapterId)) {
+      await loadFullContent(chapterId);
+    }
+
     setExpandedChapters(prev => {
       const next = new Set(prev);
       if (next.has(chapterId)) {
@@ -71,7 +102,7 @@ const ChapterList: React.FC = () => {
       }
       return next;
     });
-  };
+  }, [expandedChapters, isFullyLoaded, loadFullContent]);
 
   const handleMoveChapter = async (chapterId: number, direction: 'up' | 'down', event: React.MouseEvent) => {
     event.stopPropagation();
@@ -96,10 +127,17 @@ const ChapterList: React.FC = () => {
     // In a real app, you'd make an API call to persist this change
   };
 
-  const filteredChapters = chapters.filter(chapter => 
-    chapter.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    chapter.content?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Use lazy chapters for display and optimize search
+  const filteredChapters = lazyChapters.filter(chapter => {
+    if (!searchTerm) return true;
+
+    const titleMatch = chapter.title.toLowerCase().includes(searchTerm.toLowerCase());
+    if (titleMatch) return true;
+
+    // Use searchable content (previews + loaded content)
+    const searchableContent = getSearchableContent(chapter.id);
+    return searchableContent.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const formatWordCount = (count: number) => {
     if (count >= 1000) {
@@ -271,9 +309,23 @@ const ChapterList: React.FC = () => {
                       </div>
 
                       {/* Content Preview (when expanded) */}
-                      {expandedChapters.has(chapter.id) && chapter.content && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded text-sm text-gray-600 line-clamp-3">
-                          {chapter.content}
+                      {expandedChapters.has(chapter.id) && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded text-sm text-gray-600">
+                          {isContentLoading(chapter.id) ? (
+                            <div className="flex items-center justify-center py-4">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-chrome-green-600"></div>
+                              <span className="ml-2 text-gray-500">Loading content...</span>
+                            </div>
+                          ) : chapter.content ? (
+                            <div className="line-clamp-3">
+                              {chapter.content}
+                              {!isFullyLoaded(chapter.id) && (
+                                <span className="text-chrome-green-600 font-medium"> [Preview]</span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-gray-400 italic">No content available</div>
+                          )}
                         </div>
                       )}
                     </div>
