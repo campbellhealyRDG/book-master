@@ -143,8 +143,8 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for autosave and navigation protection
     - _Requirements: 4.1, 4.3_
 
-- [ ] 7. Integrate British English spell checking
-  - [ ] 7.1 Set up typo.js spell checking engine
+- [x] 7. Integrate British English spell checking
+  - [x] 7.1 Set up typo.js spell checking engine
     - Integrate typo.js library with British English dictionary
     - Implement real-time error detection and highlighting
     - Add visual indicators (red wavy underlines)
@@ -152,9 +152,9 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for spell checking integration
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 7.2 Build spell checking user interface
+  - [x] 7.2 Build spell checking user interface
     - Implement right-click context menu for corrections
-    - Add multiple correction suggestions with capitalization
+    - Add multiple correction suggestions with capitalisation
     - Create ignore word functionality for session
     - Build US to UK spelling conversion suggestions
     - Write tests for spell checking user interactions

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppStore } from '../../store';
+import { spellCheckService, SpellCheckSuggestion } from '../../services/spellChecker';
 
 interface TextEditorProps {
   content: string;
@@ -28,6 +29,19 @@ const TextEditor: React.FC<TextEditorProps> = ({
     italic: false,
     underline: false
   });
+
+  // Spell checking state
+  const [spellCheckInitialized, setSpellCheckInitialized] = useState(false);
+  const [misspellings, setMisspellings] = useState<SpellCheckSuggestion[]>([]);
+  const [contextMenu, setContextMenu] = useState<{
+    show: boolean;
+    x: number;
+    y: number;
+    word: string;
+    suggestions: string[];
+    position: { start: number; end: number };
+  } | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   const setUnsavedChanges = useAppStore((state) => state.setUnsavedChanges);
   const autoSaveEnabled = useAppStore((state) => state.autoSaveEnabled);
@@ -185,10 +199,33 @@ const TextEditor: React.FC<TextEditorProps> = ({
     });
   }, [content]);
 
+  // Initialize spell checker
+  useEffect(() => {
+    const initSpellChecker = async () => {
+      if (!spellCheckInitialized) {
+        const initialized = await spellCheckService.initialize();
+        setSpellCheckInitialized(initialized);
+      }
+    };
+
+    initSpellChecker();
+  }, [spellCheckInitialized]);
+
+  // Perform spell checking
+  const performSpellCheck = useCallback((text: string) => {
+    if (spellCheckEnabled && spellCheckInitialized) {
+      const result = spellCheckService.checkText(text);
+      setMisspellings(result.misspellings);
+    } else {
+      setMisspellings([]);
+    }
+  }, [spellCheckEnabled, spellCheckInitialized]);
+
   // Initialize counts on mount
   useEffect(() => {
     updateCounts(content);
-  }, [content, updateCounts]);
+    performSpellCheck(content);
+  }, [content, updateCounts, performSpellCheck]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -201,6 +238,97 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
     return () => clearInterval(autoSaveTimer);
   }, [autoSave, autoSaveEnabled, autoSaveInterval]);
+
+  // Handle right-click for spell check context menu
+  const handleContextMenu = useCallback((e: React.MouseEvent<HTMLTextAreaElement>) => {
+    if (!spellCheckEnabled || !spellCheckInitialized) return;
+
+    e.preventDefault();
+
+    const textarea = textAreaRef.current;
+    if (!textarea) return;
+
+    const rect = textarea.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    // Find clicked position in text
+    const clickPosition = textarea.selectionStart;
+
+    // Find misspelling at click position
+    const misspelling = misspellings.find(m =>
+      clickPosition >= m.position.start && clickPosition <= m.position.end
+    );
+
+    if (misspelling) {
+      setContextMenu({
+        show: true,
+        x: x - rect.left,
+        y: y - rect.top,
+        word: misspelling.word,
+        suggestions: misspelling.suggestions,
+        position: misspelling.position
+      });
+    } else {
+      setContextMenu(null);
+    }
+  }, [spellCheckEnabled, spellCheckInitialized, misspellings]);
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = useCallback((suggestion: string) => {
+    if (!contextMenu) return;
+
+    const textarea = textAreaRef.current;
+    if (!textarea) return;
+
+    const newContent =
+      content.substring(0, contextMenu.position.start) +
+      suggestion +
+      content.substring(contextMenu.position.end);
+
+    handleContentChange(newContent);
+    setContextMenu(null);
+
+    // Restore focus and cursor position
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = contextMenu.position.start + suggestion.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  }, [contextMenu, content, handleContentChange]);
+
+  // Handle ignore word
+  const handleIgnoreWord = useCallback(() => {
+    if (!contextMenu) return;
+
+    spellCheckService.addToIgnoreList(contextMenu.word);
+    performSpellCheck(content);
+    setContextMenu(null);
+  }, [contextMenu, content, performSpellCheck]);
+
+  // Handle add to dictionary
+  const handleAddToDictionary = useCallback(() => {
+    if (!contextMenu) return;
+
+    spellCheckService.addToCustomDictionary(contextMenu.word);
+    performSpellCheck(content);
+    setContextMenu(null);
+  }, [contextMenu, content, performSpellCheck]);
+
+  // Close context menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+
+    if (contextMenu?.show) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [contextMenu]);
+
 
   return (
     <div className="flex flex-col h-full">
@@ -238,6 +366,26 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
           <div className="h-6 w-px bg-gray-300 mx-2" />
 
+          {/* Spell check toggle */}
+          <button
+            onClick={() => useAppStore.setState({ spellCheckEnabled: !spellCheckEnabled })}
+            className={`p-2 rounded hover:bg-gray-100 ${
+              spellCheckEnabled ? 'bg-chrome-green-100 text-chrome-green-700' : 'text-gray-600'
+            }`}
+            title={`Spell checking ${spellCheckEnabled ? 'enabled' : 'disabled'}`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+
+          <div className="h-6 w-px bg-gray-300 mx-2" />
+
           {/* Undo/Redo buttons */}
           <button
             onClick={undo}
@@ -261,11 +409,49 @@ const TextEditor: React.FC<TextEditorProps> = ({
         <div className="flex items-center space-x-4 text-sm text-gray-500">
           <span>{wordCount} words</span>
           <span>{charCount} characters</span>
+          {spellCheckEnabled && (
+            <span className={misspellings.length > 0 ? 'text-red-600' : 'text-chrome-green-600'}>
+              {misspellings.length === 0 ? 'No spelling errors' : `${misspellings.length} spelling error${misspellings.length > 1 ? 's' : ''}`}
+            </span>
+          )}
+          {spellCheckEnabled && !spellCheckInitialized && (
+            <span className="text-orange-600">Initialising spell checker...</span>
+          )}
         </div>
       </div>
 
-      {/* Text area */}
-      <div className="flex-1 p-4">
+      {/* Text area with spell check highlighting */}
+      <div className="flex-1 p-4 relative">
+        {/* Spell check overlay */}
+        {spellCheckEnabled && misspellings.length > 0 && (
+          <div className="absolute inset-4 pointer-events-none">
+            <div
+              className="w-full h-full text-base leading-relaxed font-serif whitespace-pre-wrap break-words"
+              style={{
+                fontSize: '16px',
+                lineHeight: '1.6',
+                fontFamily: '"Georgia", "Times New Roman", serif',
+                color: 'transparent',
+                minHeight: '600px'
+              }}
+            >
+              {content.split('').map((char, index) => {
+                const isMisspelled = misspellings.some(m =>
+                  index >= m.position.start && index < m.position.end
+                );
+                return (
+                  <span
+                    key={index}
+                    className={isMisspelled ? 'border-b-2 border-red-500 border-dotted' : ''}
+                  >
+                    {char}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <textarea
           ref={textAreaRef}
           value={content}
@@ -273,8 +459,9 @@ const TextEditor: React.FC<TextEditorProps> = ({
           onKeyDown={handleKeyDown}
           onSelect={updateFormatState}
           onClick={updateFormatState}
-          spellCheck={spellCheckEnabled}
-          className="w-full h-full resize-none border-none outline-none text-base leading-relaxed font-serif"
+          onContextMenu={handleContextMenu}
+          spellCheck={false} // We handle spell checking ourselves
+          className="w-full h-full resize-none border-none outline-none text-base leading-relaxed font-serif relative z-10 bg-transparent"
           placeholder="Begin writing your chapter content here..."
           style={{
             minHeight: '600px',
@@ -283,6 +470,68 @@ const TextEditor: React.FC<TextEditorProps> = ({
             fontFamily: '"Georgia", "Times New Roman", serif'
           }}
         />
+
+        {/* Context Menu */}
+        {contextMenu && (
+          <div
+            ref={contextMenuRef}
+            className="absolute bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-48"
+            style={{
+              left: contextMenu.x,
+              top: contextMenu.y,
+              maxHeight: '200px',
+              overflowY: 'auto'
+            }}
+          >
+            {contextMenu.suggestions.length > 0 && (
+              <>
+                <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Suggestions
+                </div>
+                {contextMenu.suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestionSelect(suggestion)}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+                <div className="border-t border-gray-200 my-1"></div>
+              </>
+            )}
+
+            <button
+              onClick={handleIgnoreWord}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm text-gray-700"
+            >
+              Ignore "{contextMenu.word}"
+            </button>
+
+            <button
+              onClick={handleAddToDictionary}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm text-gray-700"
+            >
+              Add to dictionary
+            </button>
+
+            {/* US to UK conversion option */}
+            {(() => {
+              const ukVersion = spellCheckService.convertUSToUK(contextMenu.word);
+              return ukVersion !== contextMenu.word ? (
+                <>
+                  <div className="border-t border-gray-200 my-1"></div>
+                  <button
+                    onClick={() => handleSuggestionSelect(ukVersion)}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm text-blue-600"
+                  >
+                    Use British spelling: "{ukVersion}"
+                  </button>
+                </>
+              ) : null;
+            })()}
+          </div>
+        )}
       </div>
     </div>
   );
