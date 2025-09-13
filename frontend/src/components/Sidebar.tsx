@@ -245,9 +245,15 @@ const Sidebar: React.FC = () => {
         <ChapterCreator
           bookId={selectedBook.id}
           onClose={() => setShowChapterCreator(false)}
-          onSuccess={() => {
+          onSuccess={(newChapter) => {
             setShowChapterCreator(false);
-            navigate(`/books/${selectedBook.id}`);
+            if (newChapter) {
+              // Navigate to the editor with the newly created chapter
+              navigate(`/editor/${selectedBook.id}/${newChapter.id}`);
+            } else {
+              // Fallback to book chapter list
+              navigate(`/books/${selectedBook.id}`);
+            }
           }}
         />
       )}

@@ -5,7 +5,7 @@ import { CreateChapterData } from '../../types';
 interface ChapterCreatorProps {
   bookId: number;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newChapter?: any) => void;
 }
 
 const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSuccess }) => {
@@ -34,14 +34,15 @@ const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSucc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
-    
+
     try {
-      await createChapterMutation.mutateAsync(formData);
-      onSuccess();
+      const result = await createChapterMutation.mutateAsync(formData);
+      const newChapter = result.data.data;
+      onSuccess(newChapter);
     } catch (error) {
       console.error('Failed to create chapter:', error);
     }

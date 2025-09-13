@@ -409,9 +409,13 @@ const ChapterList: React.FC = () => {
         <ChapterCreator
           bookId={bookIdNum}
           onClose={() => setShowCreator(false)}
-          onSuccess={() => {
+          onSuccess={(newChapter) => {
             setShowCreator(false);
             refetch();
+            if (newChapter) {
+              // Navigate to the editor with the newly created chapter
+              navigate(`/editor/${bookIdNum}/${newChapter.id}`);
+            }
           }}
         />
       )}
