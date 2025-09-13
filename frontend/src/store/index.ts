@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Book, Chapter, DictionaryTerm, UserPreference, Scratchpad, AppError } from '../types';
+import { Book, Chapter, DictionaryTerm, Scratchpad, AppError } from '../types';
 
 // Application state interface
 interface AppState {
