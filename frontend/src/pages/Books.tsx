@@ -1,44 +1,43 @@
 import React from 'react';
+import BookList from '../components/books/BookList';
+import ChapterList from '../components/chapters/ChapterList';
+import { useParams } from 'react-router-dom';
 
 const Books: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-chrome-green-600">My Books</h1>
-            <p className="text-gray-600 mt-2">
-              Manage your book collection and manuscripts
-            </p>
-          </div>
+  const { bookId } = useParams<{ bookId?: string }>();
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="text-center py-12">
-              <div className="mx-auto h-12 w-12 text-chrome-green-400">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No books yet</h3>
-              <p className="mt-2 text-gray-500">
-                Get started by creating your first book
-              </p>
-              <div className="mt-6">
-                <button
-                  type="button"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-chrome-green-600 hover:bg-chrome-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-chrome-green-500"
-                >
-                  Create New Book
-                </button>
-              </div>
+  return (
+    <div className="flex h-full">
+      {/* Books Panel */}
+      <div className="w-1/2 border-r border-gray-200 overflow-y-auto">
+        <BookList />
+      </div>
+      
+      {/* Chapters Panel */}
+      <div className="w-1/2 overflow-y-auto bg-gray-50">
+        {bookId ? (
+          <ChapterList />
+        ) : (
+          <div className="p-6">
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <svg
+                className="h-16 w-16 text-gray-300 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Book Selected</h3>
+              <p className="text-sm text-gray-500">Select a book from the left to view its chapters</p>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

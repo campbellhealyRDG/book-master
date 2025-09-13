@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bookAPI, chapterAPI, dictionaryAPI, preferencesAPI, scratchpadAPI } from '../services/api';
 import { useAppStore } from '../store';
-import { Book, Chapter, CreateBookData, UpdateBookData, CreateChapterData, UpdateChapterData } from '../types';
+import { CreateBookData, UpdateBookData, CreateChapterData, UpdateChapterData } from '../types';
 
 // Query keys
 export const queryKeys = {
@@ -112,17 +112,17 @@ export const useChapter = (id: number) => {
   });
 };
 
-export const useCreateChapter = () => {
+export const useCreateChapter = (bookId: number) => {
   const queryClient = useQueryClient();
   const addChapter = useAppStore((state) => state.addChapter);
 
   return useMutation({
-    mutationFn: ({ bookId, data }: { bookId: number; data: CreateChapterData }) =>
+    mutationFn: (data: CreateChapterData) =>
       chapterAPI.createChapter(bookId, data),
-    onSuccess: (response, variables) => {
+    onSuccess: (response) => {
       const newChapter = response.data;
       addChapter(newChapter);
-      queryClient.invalidateQueries({ queryKey: queryKeys.chapters(variables.bookId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chapters(bookId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
     },
   });
