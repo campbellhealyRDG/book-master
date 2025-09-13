@@ -230,7 +230,9 @@ const BookList: React.FC = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        Updated {formatDate(book.updatedAt)}
+                        {(book as any).updated_at && (book as any).updated_at !== (book as any).created_at
+                          ? `Updated ${formatDate((book as any).updated_at)}`
+                          : `Created ${formatDate((book as any).created_at)}`}
                       </span>
                     </div>
                   </div>
