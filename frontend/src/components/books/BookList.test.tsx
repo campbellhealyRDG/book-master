@@ -28,6 +28,17 @@ vi.mock('./BookCreator', () => ({
   ),
 }));
 
+// Mock react-router-dom
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useParams: () => ({}),
+  };
+});
+
 const mockStore = {
   books: [],
   selectedBookId: null,
