@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppStore } from '../../store';
 import { spellCheckService, SpellCheckSuggestion } from '../../services/spellChecker';
+import DictionaryManager from '../dictionary/DictionaryManager';
 
 interface TextEditorProps {
   content: string;
@@ -42,6 +43,9 @@ const TextEditor: React.FC<TextEditorProps> = ({
     position: { start: number; end: number };
   } | null>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  // Dictionary manager state
+  const [showDictionaryManager, setShowDictionaryManager] = useState(false);
 
   const setUnsavedChanges = useAppStore((state) => state.setUnsavedChanges);
   const autoSaveEnabled = useAppStore((state) => state.autoSaveEnabled);
@@ -315,6 +319,14 @@ const TextEditor: React.FC<TextEditorProps> = ({
     setContextMenu(null);
   }, [contextMenu, content, performSpellCheck]);
 
+  // Handle dictionary manager close
+  const handleDictionaryManagerClose = useCallback(async () => {
+    setShowDictionaryManager(false);
+    // Refresh spell checker with updated server dictionary terms
+    await spellCheckService.refreshCustomDictionary();
+    performSpellCheck(content);
+  }, [content, performSpellCheck]);
+
   // Close context menu on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -380,6 +392,22 @@ const TextEditor: React.FC<TextEditorProps> = ({
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+
+          {/* Dictionary manager button */}
+          <button
+            onClick={() => setShowDictionaryManager(true)}
+            className="p-2 rounded hover:bg-gray-100 text-gray-600"
+            title="Manage custom dictionary"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
               />
             </svg>
           </button>
@@ -533,6 +561,12 @@ const TextEditor: React.FC<TextEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Dictionary Manager */}
+      <DictionaryManager
+        isVisible={showDictionaryManager}
+        onClose={handleDictionaryManagerClose}
+      />
     </div>
   );
 };
