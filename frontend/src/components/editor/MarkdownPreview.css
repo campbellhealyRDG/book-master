@@ -1,0 +1,408 @@
+/* Markdown Preview Styles */
+.markdown-preview {
+  @apply flex flex-col h-full bg-white border border-gray-200 rounded-lg;
+  overflow: hidden;
+}
+
+.markdown-preview.empty-preview,
+.markdown-preview.plain-text-preview {
+  @apply justify-center items-center p-8;
+}
+
+/* Preview Header */
+.preview-header {
+  @apply flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200;
+}
+
+.preview-title {
+  @apply flex items-center justify-between mb-3;
+}
+
+.preview-title h3 {
+  @apply text-lg font-semibold text-gray-900 m-0;
+}
+
+.markdown-indicator {
+  @apply inline-flex items-center px-2 py-1 text-xs font-medium bg-chrome-green-100 text-chrome-green-800 rounded-full;
+}
+
+/* Statistics Display */
+.markdown-stats {
+  @apply mt-2;
+}
+
+.stats-grid {
+  @apply grid grid-cols-3 gap-4;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    @apply grid-cols-4;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    @apply grid-cols-7;
+  }
+}
+
+.stat-item {
+  @apply text-center;
+}
+
+.stat-label {
+  @apply block text-xs font-medium text-gray-500 uppercase tracking-wide;
+}
+
+.stat-value {
+  @apply block text-lg font-semibold text-gray-900 mt-1;
+}
+
+/* Table of Contents */
+.markdown-toc {
+  @apply flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200;
+}
+
+.toc-title {
+  @apply text-sm font-semibold text-gray-900 mb-2 m-0;
+}
+
+.toc-list {
+  @apply list-none p-0 m-0;
+}
+
+.toc-item {
+  @apply ml-0;
+}
+
+.toc-level-1 { @apply ml-0; }
+.toc-level-2 { @apply ml-4; }
+.toc-level-3 { @apply ml-8; }
+.toc-level-4 { @apply ml-12; }
+.toc-level-5 { @apply ml-16; }
+.toc-level-6 { @apply ml-20; }
+
+.toc-link {
+  @apply block w-full text-left text-sm text-chrome-green-700 hover:text-chrome-green-900 hover:bg-chrome-green-50 px-2 py-1 rounded transition-colors duration-150 border-none bg-transparent cursor-pointer;
+}
+
+.toc-link:hover {
+  @apply underline;
+}
+
+/* Preview Content */
+.preview-content {
+  @apply flex-1 p-6 overflow-y-auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.preview-content.plain-text {
+  @apply whitespace-pre-wrap;
+}
+
+/* Markdown Element Styles */
+.markdown-heading {
+  @apply font-bold text-gray-900 mt-8 mb-4 leading-tight;
+}
+
+.markdown-heading:first-child {
+  @apply mt-0;
+}
+
+.markdown-h1 {
+  @apply text-3xl border-b border-gray-200 pb-2;
+}
+
+.markdown-h2 {
+  @apply text-2xl border-b border-gray-100 pb-2;
+}
+
+.markdown-h3 {
+  @apply text-xl;
+}
+
+.markdown-h4 {
+  @apply text-lg;
+}
+
+.markdown-h5 {
+  @apply text-base;
+}
+
+.markdown-h6 {
+  @apply text-sm uppercase tracking-wide text-gray-600;
+}
+
+.markdown-paragraph {
+  @apply mb-4 leading-relaxed text-gray-800;
+}
+
+.markdown-paragraph:last-child {
+  @apply mb-0;
+}
+
+.markdown-blockquote {
+  @apply border-l-4 border-chrome-green-200 pl-4 py-2 mb-4 bg-gray-50 italic text-gray-700;
+}
+
+.markdown-blockquote p {
+  @apply mb-2;
+}
+
+.markdown-blockquote p:last-child {
+  @apply mb-0;
+}
+
+/* Code Styles */
+.markdown-code-block {
+  @apply mb-4 rounded-lg overflow-hidden bg-gray-900;
+}
+
+.markdown-pre {
+  @apply p-4 overflow-x-auto m-0;
+}
+
+.markdown-code {
+  @apply font-mono text-sm text-gray-100 bg-transparent;
+}
+
+.markdown-inline-code {
+  @apply font-mono text-sm px-2 py-1 bg-gray-100 text-gray-800 rounded border;
+}
+
+/* List Styles */
+.markdown-ordered-list,
+.markdown-unordered-list {
+  @apply mb-4 pl-6;
+}
+
+.markdown-ordered-list {
+  @apply list-decimal;
+}
+
+.markdown-unordered-list {
+  @apply list-disc;
+}
+
+.markdown-list-item {
+  @apply mb-2;
+}
+
+.markdown-list-item:last-child {
+  @apply mb-0;
+}
+
+/* Link Styles */
+.markdown-link {
+  @apply text-chrome-green-600 hover:text-chrome-green-800 underline transition-colors duration-150;
+}
+
+.markdown-link:hover {
+  @apply no-underline;
+}
+
+/* Image Styles */
+.markdown-image-container {
+  @apply mb-4 text-center;
+}
+
+.markdown-image {
+  @apply max-w-full h-auto rounded-lg shadow-sm border border-gray-200;
+}
+
+/* Table Styles */
+.markdown-table-container {
+  @apply mb-4 overflow-x-auto;
+}
+
+.markdown-table {
+  @apply w-full border-collapse border border-gray-300 rounded-lg overflow-hidden;
+}
+
+.markdown-table-header {
+  @apply bg-gray-50;
+}
+
+.markdown-table-header th {
+  @apply px-4 py-3 text-left font-semibold text-gray-900 border-b border-gray-300;
+}
+
+.markdown-table-body td {
+  @apply px-4 py-3 border-b border-gray-200 text-gray-800;
+}
+
+.markdown-table-body tr:last-child td {
+  @apply border-b-0;
+}
+
+.markdown-table-body tr:nth-child(even) {
+  @apply bg-gray-50;
+}
+
+/* Horizontal Rule */
+.markdown-hr {
+  @apply my-8 border-0 border-t border-gray-300;
+}
+
+/* Empty State Styles */
+.empty-state {
+  @apply text-center max-w-md mx-auto;
+}
+
+.empty-icon {
+  @apply text-6xl mb-4;
+}
+
+.empty-state h3 {
+  @apply text-xl font-semibold text-gray-900 mb-2 m-0;
+}
+
+.empty-state p {
+  @apply text-gray-600 mb-6;
+}
+
+.markdown-help {
+  @apply text-left bg-gray-50 p-4 rounded-lg;
+}
+
+.markdown-help h4 {
+  @apply text-sm font-semibold text-gray-900 mb-3 m-0;
+}
+
+.markdown-help ul {
+  @apply list-none space-y-2 p-0 m-0;
+}
+
+.markdown-help li {
+  @apply text-sm text-gray-700;
+}
+
+.markdown-help strong {
+  @apply font-mono text-xs bg-gray-200 px-1 py-0.5 rounded;
+}
+
+/* Help Footer */
+.markdown-help-footer {
+  @apply mt-6 p-4 bg-chrome-green-50 border border-chrome-green-200 rounded-lg;
+}
+
+.markdown-help-footer p {
+  @apply text-sm text-chrome-green-800 mb-0;
+}
+
+.markdown-help-footer code {
+  @apply font-mono text-xs bg-chrome-green-100 px-1 py-0.5 rounded;
+}
+
+/* Preview Footer */
+.preview-footer {
+  @apply flex-shrink-0 p-3 bg-gray-50 border-t border-gray-200;
+}
+
+.preview-info {
+  @apply flex items-center justify-center space-x-2 text-xs text-gray-500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .preview-content {
+    @apply p-4;
+  }
+
+  .stats-grid {
+    @apply grid-cols-2 gap-3;
+  }
+
+  .markdown-h1 {
+    @apply text-2xl;
+  }
+
+  .markdown-h2 {
+    @apply text-xl;
+  }
+
+  .markdown-h3 {
+    @apply text-lg;
+  }
+
+  .markdown-table-container {
+    @apply text-sm;
+  }
+
+  .markdown-table-header th,
+  .markdown-table-body td {
+    @apply px-2 py-2;
+  }
+}
+
+/* Dark Mode Support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+  .markdown-preview {
+    @apply bg-gray-900 border-gray-700;
+  }
+
+  .preview-header,
+  .markdown-toc {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .preview-title h3,
+  .toc-title,
+  .stat-value {
+    @apply text-gray-100;
+  }
+
+  .stat-label {
+    @apply text-gray-400;
+  }
+
+  .markdown-heading {
+    @apply text-gray-100;
+  }
+
+  .markdown-paragraph {
+    @apply text-gray-300;
+  }
+
+  .markdown-blockquote {
+    @apply bg-gray-800 text-gray-300 border-chrome-green-400;
+  }
+
+  .markdown-inline-code {
+    @apply bg-gray-700 text-gray-200;
+  }
+
+  .markdown-table-header {
+    @apply bg-gray-800;
+  }
+
+  .markdown-table-header th {
+    @apply text-gray-100 border-gray-600;
+  }
+
+  .markdown-table-body td {
+    @apply text-gray-300 border-gray-700;
+  }
+
+  .markdown-table-body tr:nth-child(even) {
+    @apply bg-gray-800;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .preview-header,
+  .markdown-toc,
+  .preview-footer {
+    @apply hidden;
+  }
+
+  .preview-content {
+    @apply p-0 overflow-visible;
+  }
+
+  .markdown-preview {
+    @apply border-0 rounded-none;
+  }
+}
