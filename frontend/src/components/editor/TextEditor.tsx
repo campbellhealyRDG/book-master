@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useAppStore } from '../../store';
 import { spellCheckService, SpellCheckSuggestion } from '../../services/spellChecker';
+import { paginationService } from '../../services/paginationService';
 import DictionaryManager from '../dictionary/DictionaryManager';
 
 interface TextEditorProps {
@@ -47,9 +48,29 @@ const TextEditor: React.FC<TextEditorProps> = ({
   // Dictionary manager state
   const [showDictionaryManager, setShowDictionaryManager] = useState(false);
 
+  // Pagination state
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [paginationEnabled, setPaginationEnabled] = useState(false);
+
   const setUnsavedChanges = useAppStore((state) => state.setUnsavedChanges);
   const autoSaveEnabled = useAppStore((state) => state.autoSaveEnabled);
   const spellCheckEnabled = useAppStore((state) => state.spellCheckEnabled);
+
+  // Pagination logic
+  const documentPages = useMemo(() => {
+    if (!paginationEnabled) return null;
+    return paginationService.paginateDocument(content);
+  }, [content, paginationEnabled]);
+
+  const currentPage = useMemo(() => {
+    if (!documentPages) return null;
+    return documentPages.find(page => page.pageNumber === currentPageNumber) || documentPages[0];
+  }, [documentPages, currentPageNumber]);
+
+  const documentStats = useMemo(() => {
+    if (!documentPages) return null;
+    return paginationService.getDocumentStats(documentPages);
+  }, [documentPages]);
 
   // Undo/Redo state
   const [history, setHistory] = useState<string[]>([content]);
@@ -65,19 +86,39 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
   // Handle content change
   const handleContentChange = useCallback((newContent: string) => {
-    onChange(newContent);
-    setUnsavedChanges(true);
-    updateCounts(newContent);
+    if (paginationEnabled && currentPage) {
+      // In paginated mode, update the specific page content
+      const updatedPages = paginationService.updatePage(documentPages || [], currentPageNumber, newContent);
+      const fullContent = paginationService.reconstructDocument(updatedPages);
 
-    // Add to history for undo/redo
-    const newHistory = [...history.slice(0, historyIndex + 1), newContent];
-    if (newHistory.length > maxHistorySize) {
-      newHistory.shift();
+      onChange(fullContent);
+      setUnsavedChanges(true);
+      updateCounts(fullContent);
+
+      // Add to history for undo/redo
+      const newHistory = [...history.slice(0, historyIndex + 1), fullContent];
+      if (newHistory.length > maxHistorySize) {
+        newHistory.shift();
+      } else {
+        setHistoryIndex(historyIndex + 1);
+      }
+      setHistory(newHistory);
     } else {
-      setHistoryIndex(historyIndex + 1);
+      // Non-paginated mode - normal behavior
+      onChange(newContent);
+      setUnsavedChanges(true);
+      updateCounts(newContent);
+
+      // Add to history for undo/redo
+      const newHistory = [...history.slice(0, historyIndex + 1), newContent];
+      if (newHistory.length > maxHistorySize) {
+        newHistory.shift();
+      } else {
+        setHistoryIndex(historyIndex + 1);
+      }
+      setHistory(newHistory);
     }
-    setHistory(newHistory);
-  }, [onChange, setUnsavedChanges, updateCounts, history, historyIndex]);
+  }, [onChange, setUnsavedChanges, updateCounts, history, historyIndex, paginationEnabled, currentPage, documentPages, currentPageNumber]);
 
   // Undo functionality
   const undo = useCallback(() => {
@@ -149,6 +190,29 @@ const TextEditor: React.FC<TextEditorProps> = ({
     }, 0);
   }, [content, formatState, handleContentChange]);
 
+  // Pagination navigation
+  const navigateToPreviousPage = useCallback(() => {
+    if (currentPageNumber > 1) {
+      setCurrentPageNumber(currentPageNumber - 1);
+    }
+  }, [currentPageNumber]);
+
+  const navigateToNextPage = useCallback(() => {
+    if (documentStats && currentPageNumber < documentStats.totalPages) {
+      setCurrentPageNumber(currentPageNumber + 1);
+    }
+  }, [currentPageNumber, documentStats]);
+
+  const navigateToFirstPage = useCallback(() => {
+    setCurrentPageNumber(1);
+  }, []);
+
+  const navigateToLastPage = useCallback(() => {
+    if (documentStats) {
+      setCurrentPageNumber(documentStats.totalPages);
+    }
+  }, [documentStats]);
+
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -183,9 +247,37 @@ const TextEditor: React.FC<TextEditorProps> = ({
           const saveEvent = new CustomEvent('manual-save');
           document.dispatchEvent(saveEvent);
           break;
+        case 'home':
+          if (paginationEnabled) {
+            e.preventDefault();
+            navigateToFirstPage();
+          }
+          break;
+        case 'end':
+          if (paginationEnabled) {
+            e.preventDefault();
+            navigateToLastPage();
+          }
+          break;
+      }
+    } else {
+      // Page navigation shortcuts
+      switch (e.key) {
+        case 'PageUp':
+          if (paginationEnabled) {
+            e.preventDefault();
+            navigateToPreviousPage();
+          }
+          break;
+        case 'PageDown':
+          if (paginationEnabled) {
+            e.preventDefault();
+            navigateToNextPage();
+          }
+          break;
       }
     }
-  }, [formatText, undo, redo]);
+  }, [formatText, undo, redo, paginationEnabled, navigateToPreviousPage, navigateToNextPage, navigateToFirstPage, navigateToLastPage]);
 
   // Update selection format state
   const updateFormatState = useCallback(() => {
@@ -412,6 +504,24 @@ const TextEditor: React.FC<TextEditorProps> = ({
             </svg>
           </button>
 
+          {/* Pagination toggle */}
+          <button
+            onClick={() => setPaginationEnabled(!paginationEnabled)}
+            className={`p-2 rounded hover:bg-gray-100 ${
+              paginationEnabled ? 'bg-chrome-green-100 text-chrome-green-700' : 'text-gray-600'
+            }`}
+            title={`Pagination ${paginationEnabled ? 'enabled' : 'disabled'}`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
+            </svg>
+          </button>
+
           <div className="h-6 w-px bg-gray-300 mx-2" />
 
           {/* Undo/Redo buttons */}
@@ -435,8 +545,19 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
         {/* Word and character count */}
         <div className="flex items-center space-x-4 text-sm text-gray-500">
-          <span>{wordCount} words</span>
-          <span>{charCount} characters</span>
+          {paginationEnabled && currentPage && documentStats ? (
+            <>
+              <span>{currentPage.wordCount} words (page)</span>
+              <span>{currentPage.characterCount} characters (page)</span>
+              <span>{documentStats.totalWords} total words</span>
+              <span>{documentStats.totalCharacters} total characters</span>
+            </>
+          ) : (
+            <>
+              <span>{wordCount} words</span>
+              <span>{charCount} characters</span>
+            </>
+          )}
           {spellCheckEnabled && (
             <span className={misspellings.length > 0 ? 'text-red-600' : 'text-chrome-green-600'}>
               {misspellings.length === 0 ? 'No spelling errors' : `${misspellings.length} spelling error${misspellings.length > 1 ? 's' : ''}`}
@@ -447,6 +568,80 @@ const TextEditor: React.FC<TextEditorProps> = ({
           )}
         </div>
       </div>
+
+      {/* Pagination controls */}
+      {paginationEnabled && documentStats && (
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={navigateToFirstPage}
+              disabled={currentPageNumber === 1}
+              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
+              title="First Page (Ctrl+Home)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={navigateToPreviousPage}
+              disabled={currentPageNumber === 1}
+              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
+              title="Previous Page (Page Up)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <span className="px-3 py-1 bg-white rounded border text-sm font-medium">
+              Page {currentPageNumber} of {documentStats.totalPages}
+            </span>
+            <button
+              onClick={navigateToNextPage}
+              disabled={currentPageNumber === documentStats.totalPages}
+              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
+              title="Next Page (Page Down)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={navigateToLastPage}
+              disabled={currentPageNumber === documentStats.totalPages}
+              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
+              title="Last Page (Ctrl+End)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </div>
+          <div className="text-sm text-gray-600">
+            Total: {documentStats.totalWords} words, {documentStats.totalPages} pages
+          </div>
+        </div>
+      )}
 
       {/* Text area with spell check highlighting */}
       <div className="flex-1 p-4 relative">
@@ -463,7 +658,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                 minHeight: '600px'
               }}
             >
-              {content.split('').map((char, index) => {
+              {(paginationEnabled && currentPage ? currentPage.content : content).split('').map((char, index) => {
                 const isMisspelled = misspellings.some(m =>
                   index >= m.position.start && index < m.position.end
                 );
@@ -482,7 +677,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
         <textarea
           ref={textAreaRef}
-          value={content}
+          value={paginationEnabled && currentPage ? currentPage.content : content}
           onChange={(e) => handleContentChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onSelect={updateFormatState}
@@ -490,7 +685,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
           onContextMenu={handleContextMenu}
           spellCheck={false} // We handle spell checking ourselves
           className="w-full h-full resize-none border-none outline-none text-base leading-relaxed font-serif relative z-10 bg-transparent"
-          placeholder="Begin writing your chapter content here..."
+          placeholder={paginationEnabled ? `Page ${currentPageNumber} content...` : "Begin writing your chapter content here..."}
           style={{
             minHeight: '600px',
             fontSize: '16px',
