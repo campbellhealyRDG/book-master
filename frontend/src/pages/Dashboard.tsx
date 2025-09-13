@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   return (
@@ -14,30 +15,83 @@ const Dashboard: React.FC = () => {
                 Welcome to your professional British English book editing application.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-xl font-semibold text-chrome-green-600 mb-2">
-                    My Books
-                  </h3>
-                  <p className="text-gray-600">
+                {/* My Books Card */}
+                <Link
+                  to="/books"
+                  className="bg-white rounded-lg shadow p-6 hover:shadow-lg hover:bg-chrome-green-50 transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2 group cursor-pointer"
+                  aria-label="Navigate to My Books page"
+                >
+                  <div className="flex items-center mb-3">
+                    <svg className="h-8 w-8 text-chrome-green-600 mr-3 group-hover:text-chrome-green-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <h3 className="text-xl font-semibold text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
+                      My Books
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 group-hover:text-gray-700 transition-colors">
                     View and manage your book collection
                   </p>
-                </div>
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-xl font-semibold text-chrome-green-600 mb-2">
-                    Editor
-                  </h3>
-                  <p className="text-gray-600">
+                  <div className="mt-4 flex items-center text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
+                    <span className="text-sm font-medium">Go to Books</span>
+                    <svg className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+
+                {/* Editor Card */}
+                <Link
+                  to="/editor"
+                  className="bg-white rounded-lg shadow p-6 hover:shadow-lg hover:bg-chrome-green-50 transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2 group cursor-pointer"
+                  aria-label="Navigate to Editor page"
+                >
+                  <div className="flex items-center mb-3">
+                    <svg className="h-8 w-8 text-chrome-green-600 mr-3 group-hover:text-chrome-green-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <h3 className="text-xl font-semibold text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
+                      Editor
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 group-hover:text-gray-700 transition-colors">
                     Write and edit your manuscripts with British English spell checking
                   </p>
-                </div>
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-xl font-semibold text-chrome-green-600 mb-2">
-                    Dictionary
-                  </h3>
-                  <p className="text-gray-600">
+                  <div className="mt-4 flex items-center text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
+                    <span className="text-sm font-medium">Start Writing</span>
+                    <svg className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+
+                {/* Dictionary Card */}
+                <Link
+                  to="/dictionary"
+                  className="bg-white rounded-lg shadow p-6 hover:shadow-lg hover:bg-chrome-green-50 transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-chrome-green-500 focus:ring-offset-2 group cursor-pointer"
+                  aria-label="Navigate to Dictionary page"
+                >
+                  <div className="flex items-center mb-3">
+                    <svg className="h-8 w-8 text-chrome-green-600 mr-3 group-hover:text-chrome-green-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                    <h3 className="text-xl font-semibold text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
+                      Dictionary
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 group-hover:text-gray-700 transition-colors">
                     Manage your custom British English dictionary
                   </p>
-                </div>
+                  <div className="mt-4 flex items-center text-chrome-green-600 group-hover:text-chrome-green-700 transition-colors">
+                    <span className="text-sm font-medium">Manage Dictionary</span>
+                    <svg className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
