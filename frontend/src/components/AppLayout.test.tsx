@@ -108,39 +108,60 @@ describe('AppLayout', () => {
     });
 
     it('shows mobile overlay when sidebar is expanded on mobile', () => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 500,
+      });
+
       (useAppStore as any).mockReturnValue({
         ...mockStore,
         sidebarCollapsed: false,
       });
-      
+
       renderAppLayout();
-      
-      const overlay = document.querySelector('[aria-hidden=\"true\"]');
+
+      const overlay = document.querySelector('[role="button"][tabindex="-1"]');
       expect(overlay).toBeInTheDocument();
       expect(overlay).toHaveClass('bg-black', 'bg-opacity-25');
     });
 
     it('does not show mobile overlay when sidebar is collapsed', () => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 500,
+      });
+
       (useAppStore as any).mockReturnValue({
         ...mockStore,
         sidebarCollapsed: true,
       });
-      
+
       renderAppLayout();
-      
-      const overlay = document.querySelector('[aria-hidden=\"true\"]');
+
+      const overlay = document.querySelector('[role="button"][tabindex="-1"]');
       expect(overlay).not.toBeInTheDocument();
     });
 
     it('closes sidebar when mobile overlay is clicked', () => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 500,
+      });
+
       (useAppStore as any).mockReturnValue({
         ...mockStore,
         sidebarCollapsed: false,
       });
-      
+
       renderAppLayout();
-      
-      const overlay = document.querySelector('[aria-hidden=\"true\"]');
+
+      const overlay = document.querySelector('[role="button"][tabindex="-1"]');
       if (overlay) {
         fireEvent.click(overlay);
         expect(mockStore.setSidebarCollapsed).toHaveBeenCalledWith(true);
@@ -159,20 +180,38 @@ describe('AppLayout', () => {
 
     it('has proper padding and responsive behavior', () => {
       renderAppLayout();
-      
+
       const main = screen.getByRole('main');
       const contentDiv = main.firstChild;
-      expect(contentDiv).toHaveClass('h-full', 'p-4', 'sm:p-6', 'lg:p-8');
+      expect(contentDiv).toHaveClass('h-full');
+      // Main element itself has responsive padding now
+      expect(main).toHaveClass('px-8', 'py-8');
     });
   });
 
   describe('Responsive Behavior', () => {
     it('collapses sidebar on mobile viewport during mount', async () => {
-      // Mock mobile viewport
+      // Mock mobile viewport (< 640px)
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
         value: 500,
+      });
+
+      renderAppLayout();
+
+      // Wait for useEffect to run
+      await waitFor(() => {
+        expect(mockStore.setSidebarCollapsed).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('collapses sidebar on tablet viewport during mount', async () => {
+      // Mock tablet viewport (< 768px)
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 700,
       });
 
       renderAppLayout();
@@ -213,45 +252,190 @@ describe('AppLayout', () => {
       // setSidebarCollapsed should not be called for desktop viewport
       expect(mockStore.setSidebarCollapsed).not.toHaveBeenCalled();
     });
+
+    it('applies responsive padding to main content', () => {
+      renderAppLayout();
+
+      const main = screen.getByRole('main');
+
+      // Check for responsive padding classes
+      expect(main).toHaveClass('px-8', 'py-8'); // Desktop default
+    });
+
+    it('uses mobile padding on small screens', () => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 500,
+      });
+
+      renderAppLayout();
+
+      const main = screen.getByRole('main');
+
+      // Should have mobile padding classes
+      expect(main.className).toContain('px-4 py-4');
+    });
+
+    it('uses tablet padding on medium screens', () => {
+      // Mock tablet viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 700,
+      });
+
+      renderAppLayout();
+
+      const main = screen.getByRole('main');
+
+      // Should have tablet padding classes
+      expect(main.className).toContain('px-6 py-6');
+    });
+
+    it('header elements respond to screen size', () => {
+      renderAppLayout();
+
+      const header = screen.getByRole('banner');
+      const titleDiv = header.querySelector('.ml-2');
+
+      expect(titleDiv).toHaveClass('sm:ml-3');
+    });
+
+    it('title text responds to screen size', () => {
+      renderAppLayout();
+
+      const title = screen.getByRole('heading', { name: /book master/i });
+
+      expect(title).toHaveClass('text-lg', 'sm:text-xl', 'lg:text-2xl');
+    });
+
+    it('welcome message is hidden on smaller screens', () => {
+      renderAppLayout();
+
+      const welcomeDiv = screen.getByText(/welcome to book master/i).parentElement;
+
+      expect(welcomeDiv).toHaveClass('hidden', 'md:block');
+    });
   });
 
   describe('Accessibility', () => {
-    it('has proper ARIA labels on toggle button', () => {
+    it('has skip to main content link', () => {
       renderAppLayout();
-      
-      const toggleButton = screen.getByRole('button', { name: /collapse sidebar/i });
-      expect(toggleButton).toHaveAttribute('aria-label', 'Collapse sidebar');
+
+      const skipLink = screen.getByRole('link', { name: /skip to main content/i });
+      expect(skipLink).toBeInTheDocument();
+      expect(skipLink).toHaveAttribute('href', '#main-content');
+      expect(skipLink).toHaveClass('sr-only');
     });
 
-    it('updates ARIA label based on sidebar state', () => {
+    it('skip link becomes visible when focused', () => {
+      renderAppLayout();
+
+      const skipLink = screen.getByRole('link', { name: /skip to main content/i });
+      expect(skipLink).toHaveClass('focus:not-sr-only');
+    });
+
+    it('has proper role attributes', () => {
+      renderAppLayout();
+
+      expect(screen.getByRole('banner')).toBeInTheDocument();
+      expect(screen.getByRole('main')).toBeInTheDocument();
+    });
+
+    it('main content area has proper id for skip link', () => {
+      renderAppLayout();
+
+      const main = screen.getByRole('main');
+      expect(main).toHaveAttribute('id', 'main-content');
+    });
+
+    it('has enhanced ARIA labels on toggle button', () => {
+      renderAppLayout();
+
+      const toggleButton = screen.getByRole('button', { name: /collapse sidebar navigation/i });
+      expect(toggleButton).toHaveAttribute('aria-label', 'Collapse sidebar navigation');
+      expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+      expect(toggleButton).toHaveAttribute('aria-controls', 'main-sidebar');
+    });
+
+    it('updates ARIA attributes based on sidebar state', () => {
       (useAppStore as any).mockReturnValue({
         ...mockStore,
         sidebarCollapsed: true,
       });
-      
+
       renderAppLayout();
-      
-      const toggleButton = screen.getByRole('button', { name: /expand sidebar/i });
-      expect(toggleButton).toHaveAttribute('aria-label', 'Expand sidebar');
+
+      const toggleButton = screen.getByRole('button', { name: /expand sidebar navigation/i });
+      expect(toggleButton).toHaveAttribute('aria-label', 'Expand sidebar navigation');
+      expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('has proper focus management on toggle button', () => {
+    it('has enhanced focus management on toggle button', () => {
       renderAppLayout();
-      
-      const toggleButton = screen.getByRole('button', { name: /collapse sidebar/i });
-      expect(toggleButton).toHaveClass('focus:outline-none', 'focus:ring-2', 'focus:ring-chrome-green-300');
+
+      const toggleButton = screen.getByRole('button', { name: /collapse sidebar navigation/i });
+      expect(toggleButton).toHaveClass(
+        'focus:outline-none',
+        'focus:ring-2',
+        'focus:ring-chrome-green-300',
+        'focus:ring-offset-2',
+        'focus:ring-offset-chrome-green-600'
+      );
     });
 
-    it('mobile overlay has proper ARIA attributes', () => {
+    it('SVG icons have proper accessibility attributes', () => {
+      renderAppLayout();
+
+      const toggleButton = screen.getByRole('button', { name: /collapse sidebar navigation/i });
+      const svg = toggleButton.querySelector('svg');
+      expect(svg).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('mobile overlay handles keyboard events', () => {
+      // Mock mobile viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 500,
+      });
+
       (useAppStore as any).mockReturnValue({
         ...mockStore,
         sidebarCollapsed: false,
       });
-      
+
       renderAppLayout();
-      
-      const overlay = document.querySelector('[aria-hidden=\"true\"]');
-      expect(overlay).toHaveAttribute('aria-hidden', 'true');
+
+      const overlay = document.querySelector('[role="button"][tabindex="-1"]');
+      expect(overlay).toBeInTheDocument();
+
+      // Test escape key
+      if (overlay) {
+        fireEvent.keyDown(overlay, { key: 'Escape' });
+        expect(mockStore.setSidebarCollapsed).toHaveBeenCalledWith(true);
+      }
+    });
+
+    it('mobile overlay is not shown on desktop', () => {
+      // Mock desktop viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1024,
+      });
+
+      (useAppStore as any).mockReturnValue({
+        ...mockStore,
+        sidebarCollapsed: false,
+      });
+
+      renderAppLayout();
+
+      const overlay = document.querySelector('[role="button"][tabindex="-1"]');
+      expect(overlay).not.toBeInTheDocument();
     });
   });
 
