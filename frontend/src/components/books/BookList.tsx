@@ -25,8 +25,17 @@ const BookList: React.FC = () => {
   useEffect(() => {
     if (booksData) {
       setBooks(booksData.data || []);
+
+      // If no books exist and not currently searching, redirect to dashboard with alert
+      if (booksData.data && booksData.data.length === 0 && !searchTerm) {
+        const timer = setTimeout(() => {
+          navigate('/dashboard?alert=no-books');
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      }
     }
-  }, [booksData, setBooks]);
+  }, [booksData, setBooks, searchTerm, navigate]);
 
   const handleSelectBook = (book: Book) => {
     setSelectedBookId(book.id);

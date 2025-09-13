@@ -1,7 +1,26 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showAlert, setShowAlert] = useState(false);
+
+  useEffect(() => {
+    const alert = searchParams.get('alert');
+    if (alert === 'no-books') {
+      setShowAlert(true);
+      // Remove the alert parameter from URL
+      setSearchParams({});
+
+      // Auto-hide alert after 5 seconds
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, setSearchParams]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -14,6 +33,34 @@ const Dashboard: React.FC = () => {
               <p className="text-lg text-gray-600 mb-6">
                 Welcome to your professional British English book editing application.
               </p>
+
+              {/* Alert for no books */}
+              {showAlert && (
+                <div className="mb-6 max-w-2xl mx-auto">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-sm fade-in">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-amber-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-medium text-amber-800">No Books Found</h3>
+                        <p className="text-sm text-amber-700 mt-1">
+                          You don't have any books yet. Get started by creating your first book!
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowAlert(false)}
+                        className="ml-4 text-amber-600 hover:text-amber-800 transition-colors"
+                        aria-label="Dismiss alert"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* My Books Card */}
                 <Link
