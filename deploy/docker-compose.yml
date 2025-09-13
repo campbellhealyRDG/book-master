@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  book-master-frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    depends_on:
+      - book-master-backend
+    networks:
+      - book-master-network
+    restart: unless-stopped
+
+  book-master-backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - DATABASE_PATH=/app/data/book-master.db
+      - CORS_ORIGIN=http://localhost:5173,http://192.168.1.123:5173
+    volumes:
+      - ../backend:/app
+      - /app/node_modules
+      - book-master-data:/app/data
+    networks:
+      - book-master-network
+    restart: unless-stopped
+
+volumes:
+  book-master-data:
+    driver: local
+
+networks:
+  book-master-network:
+    driver: bridge
