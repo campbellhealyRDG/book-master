@@ -160,8 +160,8 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write tests for spell checking user interactions
     - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 8. Create custom dictionary management
-  - [ ] 8.1 Build dictionary management API
+- [x] 8. Create custom dictionary management
+  - [x] 8.1 Build dictionary management API
     - Code GET /api/dictionary/terms endpoint with filtering
     - Code POST /api/dictionary/terms with validation
     - Code PUT/DELETE endpoints for term management
@@ -169,7 +169,7 @@ use the best mcp, and agents to STRICTLY follow all instructions and action each
     - Write unit tests for dictionary API endpoints
     - _Requirements: 3.1, 3.2_
 
-  - [ ] 8.2 Create dictionary management interface
+  - [x] 8.2 Create dictionary management interface
     - Build DictionaryManager component with term listing
     - Create term addition form with category selection
     - Implement term editing and deletion functionality

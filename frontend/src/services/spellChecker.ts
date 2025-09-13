@@ -1,4 +1,5 @@
 import Typo from 'typo-js';
+import { dictionaryService } from './dictionaryService';
 
 export interface SpellCheckSuggestion {
   word: string;
@@ -81,6 +82,7 @@ class SpellCheckService {
   private isLoading = false;
   private ignoredWords = new Set<string>();
   private customDictionary = new Set<string>();
+  private serverDictionaryTerms = new Set<string>();
 
   async initialize(): Promise<boolean> {
     if (this.typo || this.isLoading) {
@@ -90,10 +92,11 @@ class SpellCheckService {
     this.isLoading = true;
 
     try {
-      // Load dictionary files
+      // Load dictionary files and server terms in parallel
       const [dicResponse, affResponse] = await Promise.all([
         fetch('/dictionaries/en_GB.dic'),
-        fetch('/dictionaries/en_GB.aff')
+        fetch('/dictionaries/en_GB.aff'),
+        this.loadServerDictionaryTerms()
       ]);
 
       if (!dicResponse.ok || !affResponse.ok) {
@@ -106,12 +109,32 @@ class SpellCheckService {
       // Initialize Typo with British English dictionary
       this.typo = new Typo('en_GB', affData, dicData);
 
+      // Server terms are already loaded by the promise above
       return true;
     } catch (error) {
       console.error('Failed to initialize spell checker:', error);
       return false;
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private async loadServerDictionaryTerms(): Promise<void> {
+    try {
+      const terms = await dictionaryService.getSpellCheckTerms();
+      this.serverDictionaryTerms = new Set(terms.map(term => term.toLowerCase()));
+    } catch (error) {
+      console.warn('Failed to load server dictionary terms:', error);
+      // Continue without server terms - not critical for spell checking to work
+    }
+  }
+
+  async refreshCustomDictionary(): Promise<void> {
+    try {
+      const terms = await dictionaryService.getSpellCheckTerms();
+      this.serverDictionaryTerms = new Set(terms.map(term => term.toLowerCase()));
+    } catch (error) {
+      console.warn('Failed to refresh server dictionary terms:', error);
     }
   }
 
@@ -124,8 +147,11 @@ class SpellCheckService {
 
     // Remove punctuation and check if ignored
     const cleanWord = word.replace(/[^\w]/g, '');
-    if (this.ignoredWords.has(cleanWord.toLowerCase()) ||
-        this.customDictionary.has(cleanWord.toLowerCase())) {
+    const lowerCleanWord = cleanWord.toLowerCase();
+
+    if (this.ignoredWords.has(lowerCleanWord) ||
+        this.customDictionary.has(lowerCleanWord) ||
+        this.serverDictionaryTerms.has(lowerCleanWord)) {
       return true;
     }
 
