@@ -1,0 +1,430 @@
+/* Enhanced Text Editor Styles */
+.enhanced-text-editor {
+  @apply flex flex-col h-full bg-white border border-gray-200 rounded-lg;
+  overflow: hidden;
+}
+
+/* Editor Toolbar */
+.editor-toolbar {
+  @apply flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200;
+  flex-shrink: 0;
+}
+
+.toolbar-section {
+  @apply flex items-center;
+}
+
+/* Mode Switcher */
+.mode-switcher {
+  @apply flex items-center bg-white rounded-lg border border-gray-200 p-1;
+}
+
+.mode-button {
+  @apply flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 rounded-md transition-all duration-150 border-none bg-transparent cursor-pointer;
+}
+
+.mode-button:hover:not(:disabled) {
+  @apply text-gray-900 bg-gray-100;
+}
+
+.mode-button.active {
+  @apply text-chrome-green-900 bg-chrome-green-100 shadow-sm;
+}
+
+.mode-button:disabled {
+  @apply text-gray-400 cursor-not-allowed;
+}
+
+.mode-icon {
+  @apply text-base;
+}
+
+.mode-label {
+  @apply hidden;
+}
+
+@media (min-width: 640px) {
+  .mode-label {
+    @apply block;
+  }
+}
+
+/* Editor Stats */
+.editor-stats {
+  @apply flex items-center space-x-2 text-sm text-gray-600;
+}
+
+.stat-item {
+  @apply flex items-baseline space-x-1;
+}
+
+.stat-value {
+  @apply font-semibold text-gray-900;
+}
+
+.stat-label {
+  @apply text-gray-500;
+}
+
+.stat-divider {
+  @apply text-gray-400;
+}
+
+/* Keyboard Shortcut Hint */
+.keyboard-shortcut-hint {
+  @apply hidden;
+}
+
+@media (min-width: 1024px) {
+  .keyboard-shortcut-hint {
+    @apply block;
+  }
+}
+
+.shortcut-text {
+  @apply text-xs text-gray-500;
+}
+
+.shortcut-text kbd {
+  @apply inline-flex items-center px-2 py-1 text-xs font-mono bg-gray-100 text-gray-600 border border-gray-300 rounded;
+}
+
+/* Editor Content */
+.editor-content {
+  @apply flex-1 flex relative;
+  overflow: hidden;
+}
+
+.editor-content.mode-edit .preview-panel,
+.editor-content.mode-preview .edit-panel {
+  @apply hidden;
+}
+
+.editor-content.mode-split .edit-panel,
+.editor-content.mode-split .preview-panel {
+  @apply flex-1;
+}
+
+/* Edit Panel */
+.edit-panel {
+  @apply flex flex-col bg-white;
+  overflow: hidden;
+}
+
+.edit-panel.hidden {
+  @apply hidden;
+}
+
+.edit-container {
+  @apply relative flex-1;
+  overflow: hidden;
+}
+
+.editor-textarea {
+  @apply w-full h-full p-4 resize-none border-none outline-none bg-transparent;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.editor-textarea::placeholder {
+  @apply text-gray-400;
+}
+
+.editor-textarea:focus {
+  @apply outline-none ring-0;
+}
+
+/* Editor Overlay */
+.editor-overlay {
+  @apply absolute inset-0 pointer-events-none;
+}
+
+/* Mobile Formatting Buttons */
+.mobile-formatting-buttons {
+  @apply absolute bottom-4 right-4 flex items-center space-x-1 pointer-events-auto;
+}
+
+@media (min-width: 768px) {
+  .mobile-formatting-buttons {
+    @apply hidden;
+  }
+}
+
+.format-button {
+  @apply flex items-center justify-center w-10 h-10 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-full shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150 cursor-pointer;
+}
+
+.format-button:disabled {
+  @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+}
+
+/* Preview Panel */
+.preview-panel {
+  @apply flex flex-col bg-white;
+  overflow: hidden;
+}
+
+.preview-panel.hidden {
+  @apply hidden;
+}
+
+.editor-markdown-preview {
+  @apply h-full;
+}
+
+/* Resize Handle for Split Mode */
+.resize-handle {
+  @apply flex items-center justify-center w-2 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors duration-150;
+  flex-shrink: 0;
+}
+
+.resize-handle-line {
+  @apply w-0.5 h-8 bg-gray-400 rounded-full;
+}
+
+/* Status Bar */
+.editor-status-bar {
+  @apply flex items-center justify-between px-4 py-2 text-xs text-gray-500 bg-gray-50 border-t border-gray-200;
+  flex-shrink: 0;
+}
+
+.status-left,
+.status-right {
+  @apply flex items-center space-x-2;
+}
+
+.current-mode {
+  @apply font-medium text-chrome-green-700;
+}
+
+.content-status {
+  @apply text-gray-600;
+}
+
+.status-divider {
+  @apply text-gray-400;
+}
+
+.keyboard-hint {
+  @apply hidden text-gray-400;
+}
+
+@media (min-width: 768px) {
+  .keyboard-hint {
+    @apply block;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .editor-toolbar {
+    @apply px-3 py-2;
+  }
+
+  .toolbar-section {
+    @apply flex-1;
+  }
+
+  .toolbar-section:first-child {
+    @apply justify-start;
+  }
+
+  .toolbar-section:last-child {
+    @apply justify-end;
+  }
+
+  .editor-stats {
+    @apply text-xs;
+  }
+
+  .mode-button {
+    @apply px-2 py-1.5;
+  }
+
+  .stat-item {
+    @apply flex-col items-center space-x-0;
+  }
+
+  .stat-value {
+    @apply text-xs;
+  }
+
+  .stat-label {
+    @apply text-xs;
+  }
+
+  .editor-textarea {
+    @apply p-3 text-sm;
+  }
+
+  .editor-status-bar {
+    @apply px-3 py-1.5;
+  }
+}
+
+/* Split Mode Responsive */
+@media (max-width: 1024px) {
+  .editor-content.mode-split {
+    @apply flex-col;
+  }
+
+  .editor-content.mode-split .edit-panel,
+  .editor-content.mode-split .preview-panel {
+    @apply flex-1;
+  }
+
+  .resize-handle {
+    @apply w-full h-2 cursor-row-resize;
+  }
+
+  .resize-handle-line {
+    @apply w-8 h-0.5;
+  }
+}
+
+/* Focus States */
+.edit-panel:focus-within {
+  @apply ring-2 ring-chrome-green-500 ring-opacity-20;
+}
+
+/* Animation Transitions */
+.mode-button,
+.format-button,
+.resize-handle {
+  transition: all 0.15s ease-in-out;
+}
+
+.editor-content {
+  transition: none; /* Prevent jarring transitions when switching modes */
+}
+
+/* Print Styles */
+@media print {
+  .editor-toolbar,
+  .editor-status-bar {
+    @apply hidden;
+  }
+
+  .enhanced-text-editor {
+    @apply border-0 rounded-none;
+  }
+
+  .editor-content {
+    @apply block;
+  }
+
+  .edit-panel.hidden,
+  .preview-panel.hidden {
+    @apply block;
+  }
+
+  .mobile-formatting-buttons,
+  .resize-handle {
+    @apply hidden;
+  }
+}
+
+/* Dark Mode Support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+  .enhanced-text-editor {
+    @apply bg-gray-900 border-gray-700;
+  }
+
+  .editor-toolbar,
+  .editor-status-bar {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .edit-panel,
+  .preview-panel {
+    @apply bg-gray-900;
+  }
+
+  .editor-textarea {
+    @apply text-gray-100;
+  }
+
+  .editor-textarea::placeholder {
+    @apply text-gray-500;
+  }
+
+  .mode-switcher {
+    @apply bg-gray-800 border-gray-600;
+  }
+
+  .mode-button {
+    @apply text-gray-400;
+  }
+
+  .mode-button:hover:not(:disabled) {
+    @apply text-gray-200 bg-gray-700;
+  }
+
+  .mode-button.active {
+    @apply text-chrome-green-300 bg-chrome-green-900;
+  }
+
+  .stat-value,
+  .current-mode {
+    @apply text-gray-200;
+  }
+
+  .stat-label,
+  .content-status {
+    @apply text-gray-400;
+  }
+
+  .format-button {
+    @apply text-gray-400 bg-gray-800 border-gray-600;
+  }
+
+  .format-button:hover:not(:disabled) {
+    @apply text-gray-200 bg-gray-700;
+  }
+
+  .resize-handle {
+    @apply bg-gray-700;
+  }
+
+  .resize-handle:hover {
+    @apply bg-gray-600;
+  }
+
+  .resize-handle-line {
+    @apply bg-gray-500;
+  }
+
+  .shortcut-text kbd {
+    @apply bg-gray-700 text-gray-300 border-gray-600;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .editor-toolbar,
+  .editor-status-bar {
+    @apply border-black;
+  }
+
+  .mode-button.active {
+    @apply bg-black text-white;
+  }
+
+  .resize-handle {
+    @apply bg-black;
+  }
+
+  .resize-handle-line {
+    @apply bg-white;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .mode-button,
+  .format-button,
+  .resize-handle {
+    transition: none;
+  }
+}
