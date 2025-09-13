@@ -149,3 +149,17 @@ export interface SpellCheckError {
   };
   suggestions: string[];
 }
+
+// Export functionality types
+export type ExportFormat = 'txt' | 'markdown';
+
+export interface ExportResult {
+  filename: string;
+  content: string;
+  format: ExportFormat;
+  size: number;
+}
+
+export interface ExportRequest {
+  format: ExportFormat;
+}

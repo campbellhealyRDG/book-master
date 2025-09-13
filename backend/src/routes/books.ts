@@ -3,6 +3,7 @@ import { body, param, query } from 'express-validator';
 import { Book } from '../models/Book.js';
 import { validateRequest, asyncHandler } from '../middleware/validation.js';
 import { createCustomError } from '../middleware/errorHandler.js';
+import { exportBook, ExportFormat } from '../utils/exportService.js';
 
 const router = Router();
 
@@ -43,6 +44,12 @@ const idValidation = [
   param('id')
     .isInt({ min: 1 })
     .withMessage('Book ID must be a positive integer'),
+];
+
+const exportValidation = [
+  body('format')
+    .isIn(['txt', 'markdown'])
+    .withMessage('Format must be either "txt" or "markdown"'),
 ];
 
 // GET /api/books - List all books
@@ -222,6 +229,39 @@ router.get('/:id/statistics',
         created: book.created_at,
         lastModified: book.updated_at,
       },
+      timestamp: new Date().toISOString(),
+    });
+  })
+);
+
+// POST /api/books/:id/export - Export a book
+router.post('/:id/export',
+  validateRequest([...idValidation, ...exportValidation]),
+  asyncHandler(async (req, res) => {
+    const bookId = parseInt(req.params.id);
+    const { format } = req.body;
+
+    const book = await Book.findById(bookId);
+    if (!book) {
+      throw createCustomError(`Book with ID ${bookId} not found`, 404);
+    }
+
+    const chapters = await book.getChapters();
+
+    const exportResult = await exportBook(book, chapters, format as ExportFormat);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${exportResult.filename}"`);
+    res.setHeader('Content-Type', exportResult.mimeType);
+
+    res.json({
+      success: true,
+      data: {
+        filename: exportResult.filename,
+        content: exportResult.content,
+        format: exportResult.format,
+        size: exportResult.content.length,
+      },
+      message: `Book "${book.title}" exported successfully as ${format.toUpperCase()}`,
       timestamp: new Date().toISOString(),
     });
   })
