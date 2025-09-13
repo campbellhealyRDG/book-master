@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__activate_project",
+      "Read(//c/Users/vincent.healy/.claude/agents/**)",
+      "mcp__filesystem__read_text_file",
+      "Bash(mkdir:*)",
+      "Bash(tree:*)",
+      "Bash(mv:*)",
+      "Read(//c/Users/vincent.healy/.claude/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
