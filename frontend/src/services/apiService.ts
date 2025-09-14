@@ -20,7 +20,7 @@ interface RequestOptions extends RequestInit {
  */
 class ApiService {
   private readonly config: ApiConfig = {
-    baseURL: 'http://localhost:8000/api',
+    baseURL: 'http://192.168.1.123:8000/api',
     timeout: 10000,
     retryAttempts: 3,
     retryDelay: 1000
