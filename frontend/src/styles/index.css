@@ -302,12 +302,13 @@ a:focus-visible,
   }
 }
 
-/* Improved color contrast ratios */
+/* Improved color contrast ratios - Enhanced for Chrome browsers */
 :root {
-  /* Enhanced contrast colors for WCAG AA compliance */
-  --text-primary: #111827; /* Contrast ratio 15.64:1 */
-  --text-secondary: #374151; /* Contrast ratio 9.64:1 */
-  --text-tertiary: #6b7280; /* Contrast ratio 5.85:1 */
+  /* Enhanced contrast colors for better readability in Chrome */
+  --text-primary: #0f172a; /* Contrast ratio 18.5:1 - Darker for better Chrome visibility */
+  --text-secondary: #1e293b; /* Contrast ratio 14.8:1 - Much darker secondary text */
+  --text-tertiary: #475569; /* Contrast ratio 8.2:1 - Darker tertiary text */
+  --text-muted: #64748b; /* Contrast ratio 6.8:1 - For very subtle text */
   --text-on-green: #ffffff; /* Contrast ratio 4.51:1 on chrome-green-600 */
 }
 
@@ -320,8 +321,34 @@ p, span, div {
   color: var(--text-secondary);
 }
 
+/* Enhanced grey text overrides for better Chrome visibility */
 .text-gray-500 {
   color: var(--text-tertiary) !important;
+}
+
+.text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+.text-gray-700 {
+  color: var(--text-primary) !important;
+}
+
+/* Additional common text classes */
+.text-slate-500 {
+  color: var(--text-tertiary) !important;
+}
+
+.text-slate-600 {
+  color: var(--text-secondary) !important;
+}
+
+.text-slate-400 {
+  color: var(--text-muted) !important;
 }
 
 /* Dark mode enhancements */
