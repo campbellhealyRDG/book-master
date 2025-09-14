@@ -30,9 +30,10 @@ eslint.config.*
 .eslintrc.*
 prettier.config.*
 .prettierrc.*
-tsconfig.json
-vite.config.*
-tailwind.config.*
+# Keep essential build configs for Docker deployment
+# tsconfig.json
+# vite.config.*
+# tailwind.config.*
 
 # Production builds (exclude source builds, keep only necessary for PI)
 dist/
