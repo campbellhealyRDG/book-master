@@ -80,11 +80,18 @@ desktop.ini
 *.temp
 .cache/
 screenshots/
+reference-screenshots/
 temp_*
 test-*
 chapter-data.json
 *_payload.json
 screenshot-*.js
+nul
+
+# Playwright test artifacts
+playwright-report/
+test-results/
+playwright/.cache/
 
 # Documentation and development notes (keep only essential docs)
 !deployment/README.md
