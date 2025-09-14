@@ -39,7 +39,6 @@ const Editor: React.FC = () => {
   const performSave = useCallback(async () => {
     if (!chapterId || !unsavedChanges) return;
 
-    console.log('Auto-saving chapter...', { chapterId, contentLength: content.length });
     setAutoSaving(true);
     try {
       await updateChapterMutation.mutateAsync({
@@ -48,7 +47,6 @@ const Editor: React.FC = () => {
       });
       setLastSaved(new Date());
       setUnsavedChanges(false);
-      console.log('Chapter saved successfully');
     } catch (error) {
       console.error('Failed to save chapter:', error);
     } finally {
@@ -59,7 +57,6 @@ const Editor: React.FC = () => {
   // Listen for auto-save and manual save events
   useEffect(() => {
     const handleAutoSave = () => {
-      console.log('Auto-save event triggered', { autoSaveEnabled, unsavedChanges });
       if (autoSaveEnabled && unsavedChanges) {
         performSave();
       }
@@ -102,23 +99,18 @@ const Editor: React.FC = () => {
 
   // Handle navigation with unsaved changes check
   const handleNavigation = useCallback((path: string) => {
-    console.log('Navigation requested to:', path, 'Unsaved changes:', unsavedChanges);
     if (unsavedChanges) {
-      console.log('Showing unsaved changes modal');
       setPendingNavigation(path);
       setShowUnsavedModal(true);
     } else {
-      console.log('No unsaved changes, navigating directly');
       navigate(path);
     }
   }, [unsavedChanges, navigate]);
 
   // Handle unsaved changes modal actions
   const handleSaveAndContinue = async () => {
-    console.log('Save and continue clicked');
     await performSave();
     if (pendingNavigation) {
-      console.log('Navigating to:', pendingNavigation);
       navigate(pendingNavigation);
     }
     setShowUnsavedModal(false);
@@ -126,7 +118,6 @@ const Editor: React.FC = () => {
   };
 
   const handleDontSave = () => {
-    console.log('Don\'t save clicked, navigating to:', pendingNavigation);
     setUnsavedChanges(false);
     if (pendingNavigation) {
       navigate(pendingNavigation);
@@ -136,7 +127,6 @@ const Editor: React.FC = () => {
   };
 
   const handleCancel = () => {
-    console.log('Cancel clicked, staying on current page');
     setShowUnsavedModal(false);
     setPendingNavigation(null);
   };

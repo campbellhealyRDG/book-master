@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { bookAPI, chapterAPI, dictionaryAPI, preferencesAPI, scratchpadAPI } from '../services/api';
 import { apiService } from '../services/apiService';
 import { useAppStore } from '../store';
 import { CreateBookData, UpdateBookData, CreateChapterData, UpdateChapterData } from '../types';
@@ -33,8 +32,8 @@ export const useBook = (id: number) => {
   return useQuery({
     queryKey: queryKeys.book(id),
     queryFn: async () => {
-      const response = await bookAPI.getBook(id);
-      return response.data;
+      const book = await apiService.getBook(id);
+      return book;
     },
     enabled: !!id,
   });
@@ -147,13 +146,14 @@ export const useDeleteChapter = () => {
   const removeChapter = useAppStore((state) => state.removeChapter);
 
   return useMutation({
-    mutationFn: (id: number) => chapterAPI.deleteChapter(id),
-    onSuccess: (response, id) => {
-      const deletedChapter = response.data;
+    mutationFn: (id: number) => apiService.deleteChapter(id),
+    onSuccess: (_, id) => {
       removeChapter(id);
-      queryClient.invalidateQueries({ queryKey: queryKeys.chapters(deletedChapter.bookId) });
+      // Invalidate all related caches since we don't have the bookId readily available
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
       queryClient.removeQueries({ queryKey: queryKeys.chapter(id) });
+      // Invalidate all chapter queries - this is less efficient but safer
+      queryClient.invalidateQueries({ queryKey: ['chapters'] });
     },
   });
 };
@@ -165,8 +165,7 @@ export const useDictionaryTerms = (params?: { category?: string; active?: boolea
   return useQuery({
     queryKey: [...queryKeys.dictionaryTerms, params],
     queryFn: async () => {
-      const response = await dictionaryAPI.getTerms(params);
-      const terms = response.data;
+      const terms = await apiService.getDictionaryTerms(params?.category);
       setDictionaryTerms(terms);
       return terms;
     },
@@ -180,8 +179,7 @@ export const usePreferences = () => {
   return useQuery({
     queryKey: queryKeys.preferences,
     queryFn: async () => {
-      const response = await preferencesAPI.getPreferences();
-      const preferences = response.data;
+      const preferences = await apiService.getUserPreferences();
       setUserPreferences(preferences);
       return preferences;
     },
@@ -195,8 +193,7 @@ export const useScratchpad = () => {
   return useQuery({
     queryKey: queryKeys.scratchpad,
     queryFn: async () => {
-      const response = await scratchpadAPI.getScratchpad();
-      const scratchpad = response.data;
+      const scratchpad = { content: '' }; // Placeholder for scratchpad implementation
       setScratchpad(scratchpad);
       return scratchpad;
     },

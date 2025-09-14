@@ -385,7 +385,6 @@ class ApiService {
     // This is a simplified pattern matching - in a real implementation,
     // you might want more sophisticated pattern matching
     cacheService.clear(); // For now, clear all when pattern invalidation is needed
-    console.log(`Invalidated cache pattern: ${pattern}`);
   }
 
   private async fetch<T>(

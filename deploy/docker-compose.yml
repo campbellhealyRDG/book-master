@@ -1,25 +1,31 @@
 version: '3.8'
 
 services:
-  book-master-frontend:
+  frontend:
+    container_name: frontend
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://backend:8000/api
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=production
-      - VITE_API_BASE_URL=http://localhost:8000
-    volumes:
-      - ../frontend:/app
-      - /app/node_modules
     depends_on:
-      - book-master-backend
+      - backend
     networks:
       - book-master-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  book-master-backend:
+  backend:
+    container_name: backend
     build:
       context: ../backend
       dockerfile: Dockerfile
@@ -29,14 +35,18 @@ services:
       - NODE_ENV=production
       - PORT=8000
       - DATABASE_PATH=/app/data/book-master.db
-      - CORS_ORIGIN=http://localhost:5173,http://192.168.1.123:5173
+      - CORS_ORIGIN=http://localhost:5173,http://192.168.1.123:5173,http://frontend:5173
     volumes:
-      - ../backend:/app
-      - /app/node_modules
       - book-master-data:/app/data
     networks:
       - book-master-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   book-master-data:
