@@ -86,7 +86,6 @@ chapter-data.json
 screenshot-*.js
 
 # Documentation and development notes (keep only essential docs)
-README.md
 !deployment/README.md
 !docs/deployment/
 DEVELOPMENT.md
