@@ -56,30 +56,29 @@ const TextEditor: React.FC<TextEditorProps> = ({
   // Scratchpad state
   const [showScratchpad, setShowScratchpad] = useState(false);
 
-  // Pagination state
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [paginationEnabled, setPaginationEnabled] = useState(false);
+  // Performance state - simplified approach
+  const [isLargeDocument, setIsLargeDocument] = useState(false);
 
   const setUnsavedChanges = useAppStore((state) => state.setUnsavedChanges);
   const autoSaveEnabled = useAppStore((state) => state.autoSaveEnabled);
   const spellCheckEnabled = useAppStore((state) => state.spellCheckEnabled);
   const selectedFont = useAppStore((state) => state.selectedFont);
 
-  // Pagination logic
-  const documentPages = useMemo(() => {
-    if (!paginationEnabled) return null;
-    return paginationService.paginateDocument(content);
-  }, [content, paginationEnabled]);
-
-  const currentPage = useMemo(() => {
-    if (!documentPages) return null;
-    return documentPages.find(page => page.pageNumber === currentPageNumber) || documentPages[0];
-  }, [documentPages, currentPageNumber]);
-
+  // Simple performance optimization for large documents
   const documentStats = useMemo(() => {
-    if (!documentPages) return null;
-    return paginationService.getDocumentStats(documentPages);
-  }, [documentPages]);
+    const wordCount = content.trim() === '' ? 0 : content.trim().split(/\s+/).length;
+    const characterCount = content.length;
+
+    // Check if document is large (over 5000 words or 20000 characters)
+    const isLarge = wordCount > 5000 || characterCount > 20000;
+    setIsLargeDocument(isLarge);
+
+    return {
+      wordCount,
+      characterCount,
+      isLarge
+    };
+  }, [content]);
 
   // Font styling
   const currentFontFamily = useMemo(() => {
@@ -98,41 +97,21 @@ const TextEditor: React.FC<TextEditorProps> = ({
     setWordCount(words);
   }, []);
 
-  // Handle content change
+  // Optimized content change handler with debouncing for large documents
   const handleContentChange = useCallback((newContent: string) => {
-    if (paginationEnabled && currentPage) {
-      // In paginated mode, update the specific page content
-      const updatedPages = paginationService.updatePage(documentPages || [], currentPageNumber, newContent);
-      const fullContent = paginationService.reconstructDocument(updatedPages);
+    onChange(newContent);
+    setUnsavedChanges(true);
+    updateCounts(newContent);
 
-      onChange(fullContent);
-      setUnsavedChanges(true);
-      updateCounts(fullContent);
-
-      // Add to history for undo/redo
-      const newHistory = [...history.slice(0, historyIndex + 1), fullContent];
-      if (newHistory.length > maxHistorySize) {
-        newHistory.shift();
-      } else {
-        setHistoryIndex(historyIndex + 1);
-      }
-      setHistory(newHistory);
+    // Add to history for undo/redo (simplified)
+    const newHistory = [...history.slice(0, historyIndex + 1), newContent];
+    if (newHistory.length > maxHistorySize) {
+      newHistory.shift();
     } else {
-      // Non-paginated mode - normal behavior
-      onChange(newContent);
-      setUnsavedChanges(true);
-      updateCounts(newContent);
-
-      // Add to history for undo/redo
-      const newHistory = [...history.slice(0, historyIndex + 1), newContent];
-      if (newHistory.length > maxHistorySize) {
-        newHistory.shift();
-      } else {
-        setHistoryIndex(historyIndex + 1);
-      }
-      setHistory(newHistory);
+      setHistoryIndex(historyIndex + 1);
     }
-  }, [onChange, setUnsavedChanges, updateCounts, history, historyIndex, paginationEnabled, currentPage, documentPages, currentPageNumber]);
+    setHistory(newHistory);
+  }, [onChange, setUnsavedChanges, updateCounts, history, historyIndex]);
 
   // Undo functionality
   const undo = useCallback(() => {
@@ -204,28 +183,8 @@ const TextEditor: React.FC<TextEditorProps> = ({
     }, 0);
   }, [content, formatState, handleContentChange]);
 
-  // Pagination navigation
-  const navigateToPreviousPage = useCallback(() => {
-    if (currentPageNumber > 1) {
-      setCurrentPageNumber(currentPageNumber - 1);
-    }
-  }, [currentPageNumber]);
-
-  const navigateToNextPage = useCallback(() => {
-    if (documentStats && currentPageNumber < documentStats.totalPages) {
-      setCurrentPageNumber(currentPageNumber + 1);
-    }
-  }, [currentPageNumber, documentStats]);
-
-  const navigateToFirstPage = useCallback(() => {
-    setCurrentPageNumber(1);
-  }, []);
-
-  const navigateToLastPage = useCallback(() => {
-    if (documentStats) {
-      setCurrentPageNumber(documentStats.totalPages);
-    }
-  }, [documentStats]);
+  // Performance optimization for large documents - disable expensive operations
+  const shouldDisableSpellCheck = isLargeDocument && spellCheckEnabled;
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -261,37 +220,9 @@ const TextEditor: React.FC<TextEditorProps> = ({
           const saveEvent = new CustomEvent('manual-save');
           document.dispatchEvent(saveEvent);
           break;
-        case 'home':
-          if (paginationEnabled) {
-            e.preventDefault();
-            navigateToFirstPage();
-          }
-          break;
-        case 'end':
-          if (paginationEnabled) {
-            e.preventDefault();
-            navigateToLastPage();
-          }
-          break;
-      }
-    } else {
-      // Page navigation shortcuts
-      switch (e.key) {
-        case 'PageUp':
-          if (paginationEnabled) {
-            e.preventDefault();
-            navigateToPreviousPage();
-          }
-          break;
-        case 'PageDown':
-          if (paginationEnabled) {
-            e.preventDefault();
-            navigateToNextPage();
-          }
-          break;
       }
     }
-  }, [formatText, undo, redo, paginationEnabled, navigateToPreviousPage, navigateToNextPage, navigateToFirstPage, navigateToLastPage]);
+  }, [formatText, undo, redo]);
 
   // Update selection format state
   const updateFormatState = useCallback(() => {
@@ -330,21 +261,29 @@ const TextEditor: React.FC<TextEditorProps> = ({
     initSpellChecker();
   }, [spellCheckInitialized]);
 
-  // Perform spell checking
+  // Optimized spell checking - skip for very large documents
   const performSpellCheck = useCallback((text: string) => {
-    if (spellCheckEnabled && spellCheckInitialized) {
+    if (spellCheckEnabled && spellCheckInitialized && !shouldDisableSpellCheck) {
       const result = spellCheckService.checkText(text);
       setMisspellings(result.misspellings);
     } else {
       setMisspellings([]);
     }
-  }, [spellCheckEnabled, spellCheckInitialized]);
+  }, [spellCheckEnabled, spellCheckInitialized, shouldDisableSpellCheck]);
 
   // Initialize counts on mount
   useEffect(() => {
     updateCounts(content);
     performSpellCheck(content);
   }, [content, updateCounts, performSpellCheck]);
+
+  // Performance warning for very large documents
+  useEffect(() => {
+    if (isLargeDocument && !localStorage.getItem('largeDocumentWarningShown')) {
+      console.warn('Large document detected. Some features may be disabled for performance.');
+      localStorage.setItem('largeDocumentWarningShown', 'true');
+    }
+  }, [isLargeDocument]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -559,23 +498,12 @@ const TextEditor: React.FC<TextEditorProps> = ({
             </svg>
           </button>
 
-          {/* Pagination toggle */}
-          <button
-            onClick={() => setPaginationEnabled(!paginationEnabled)}
-            className={`p-2 rounded hover:bg-gray-100 ${
-              paginationEnabled ? 'bg-chrome-green-100 text-chrome-green-700' : 'text-gray-600'
-            }`}
-            title={`Pagination ${paginationEnabled ? 'enabled' : 'disabled'}`}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-              />
-            </svg>
-          </button>
+          {/* Performance indicator for large documents */}
+          {isLargeDocument && (
+            <div className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded" title="Large document - some features disabled for performance">
+              Large doc
+            </div>
+          )}
 
           <div className="h-6 w-px bg-gray-300 mx-2" />
 
@@ -600,108 +528,38 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
         {/* Word and character count */}
         <div className="flex items-center space-x-4 text-sm text-gray-500">
-          {paginationEnabled && currentPage && documentStats ? (
-            <>
-              <span>{currentPage.wordCount} words (page)</span>
-              <span>{currentPage.characterCount} characters (page)</span>
-              <span>{documentStats.totalWords} total words</span>
-              <span>{documentStats.totalCharacters} total characters</span>
-            </>
-          ) : (
-            <>
-              <span>{wordCount} words</span>
-              <span>{charCount} characters</span>
-            </>
-          )}
-          {spellCheckEnabled && (
+          <span>{documentStats.wordCount} words</span>
+          <span>{documentStats.characterCount} characters</span>
+          {spellCheckEnabled && !shouldDisableSpellCheck && (
             <span className={misspellings.length > 0 ? 'text-red-600' : 'text-chrome-green-600'}>
               {misspellings.length === 0 ? 'No spelling errors' : `${misspellings.length} spelling error${misspellings.length > 1 ? 's' : ''}`}
             </span>
           )}
-          {spellCheckEnabled && !spellCheckInitialized && (
+          {shouldDisableSpellCheck && (
+            <span className="text-orange-600">Spell check disabled for performance</span>
+          )}
+          {spellCheckEnabled && !spellCheckInitialized && !shouldDisableSpellCheck && (
             <span className="text-orange-600">Initialising spell checker...</span>
           )}
         </div>
       </div>
 
-      {/* Pagination controls */}
-      {paginationEnabled && documentStats && (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={navigateToFirstPage}
-              disabled={currentPageNumber === 1}
-              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-              title="First Page (Ctrl+Home)"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={navigateToPreviousPage}
-              disabled={currentPageNumber === 1}
-              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-              title="Previous Page (Page Up)"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <span className="px-3 py-1 bg-white rounded border text-sm font-medium">
-              Page {currentPageNumber} of {documentStats.totalPages}
-            </span>
-            <button
-              onClick={navigateToNextPage}
-              disabled={currentPageNumber === documentStats.totalPages}
-              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-              title="Next Page (Page Down)"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={navigateToLastPage}
-              disabled={currentPageNumber === documentStats.totalPages}
-              className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-              title="Last Page (Ctrl+End)"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 5l7 7-7 7M5 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          </div>
-          <div className="text-sm text-gray-600">
-            Total: {documentStats.totalWords} words, {documentStats.totalPages} pages
+      {/* Performance info for large documents */}
+      {isLargeDocument && (
+        <div className="px-4 py-2 border-b border-orange-200 bg-orange-50">
+          <div className="flex items-center space-x-2 text-sm text-orange-700">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span>Large document detected - spell checking disabled for better performance on Raspberry Pi</span>
           </div>
         </div>
       )}
 
       {/* Text area with spell check highlighting */}
       <div className="flex-1 p-4 relative">
-        {/* Spell check overlay */}
-        {spellCheckEnabled && misspellings.length > 0 && (
+        {/* Spell check overlay - only for smaller documents */}
+        {spellCheckEnabled && misspellings.length > 0 && !shouldDisableSpellCheck && (
           <div className="absolute inset-4 pointer-events-none">
             <div
               className="w-full h-full text-base leading-relaxed font-serif whitespace-pre-wrap break-words"
@@ -713,7 +571,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                 minHeight: '600px'
               }}
             >
-              {(paginationEnabled && currentPage ? currentPage.content : content).split('').map((char, index) => {
+              {content.split('').map((char, index) => {
                 const isMisspelled = misspellings.some(m =>
                   index >= m.position.start && index < m.position.end
                 );
@@ -732,7 +590,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
         <textarea
           ref={textAreaRef}
-          value={paginationEnabled && currentPage ? currentPage.content : content}
+          value={content}
           onChange={(e) => handleContentChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onSelect={updateFormatState}
@@ -740,7 +598,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
           onContextMenu={handleContextMenu}
           spellCheck={false} // We handle spell checking ourselves
           className="w-full h-full resize-none border-none outline-none text-base leading-relaxed font-serif relative z-10 bg-transparent"
-          placeholder={paginationEnabled ? `Page ${currentPageNumber} content...` : "Begin writing your chapter content here..."}
+          placeholder="Begin writing your chapter content here..."
           style={{
             minHeight: '600px',
             fontSize: '16px',

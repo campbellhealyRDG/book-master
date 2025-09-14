@@ -17,7 +17,7 @@ export interface PaginationResult {
 }
 
 class PaginationService {
-  private readonly WORDS_PER_PAGE = 2000;
+  private readonly WORDS_PER_PAGE = 1000;
   private readonly CHARS_PER_PAGE = 8000;
   private readonly MAX_PAGES_IN_MEMORY = 3;
 

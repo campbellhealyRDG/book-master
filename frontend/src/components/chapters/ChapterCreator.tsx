@@ -14,7 +14,8 @@ const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSucc
     content: 'Start writing your chapter here...\n\nThis is the beginning of your new chapter. You can edit or replace this text with your own content.'
   });
   const [errors, setErrors] = useState<Partial<CreateChapterData>>({});
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const createChapterMutation = useCreateChapter(bookId);
 
   const validate = (): boolean => {
@@ -35,16 +36,18 @@ const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSucc
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) {
+    if (!validate() || isSubmitting) {
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      const result = await createChapterMutation.mutateAsync(formData);
-      const newChapter = result.data.data;
+      const newChapter = await createChapterMutation.mutateAsync(formData);
+      console.log('Chapter created successfully:', newChapter);
       onSuccess(newChapter);
     } catch (error) {
       console.error('Failed to create chapter:', error);
+      setIsSubmitting(false); // Re-enable if there's an error
     }
   };
 
@@ -144,16 +147,16 @@ const ChapterCreator: React.FC<ChapterCreatorProps> = ({ bookId, onClose, onSucc
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              disabled={createChapterMutation.isPending}
+              disabled={createChapterMutation.isPending || isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 text-white bg-chrome-green-600 rounded-lg hover:bg-chrome-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={createChapterMutation.isPending}
+              disabled={createChapterMutation.isPending || isSubmitting}
             >
-              {createChapterMutation.isPending ? (
+              {(createChapterMutation.isPending || isSubmitting) ? (
                 <span className="flex items-center justify-center">
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

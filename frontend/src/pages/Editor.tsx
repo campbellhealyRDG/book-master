@@ -30,7 +30,6 @@ const Editor: React.FC = () => {
   // Update content when chapter data loads
   useEffect(() => {
     if (chapter?.content !== undefined) {
-      console.log('Chapter loaded in Editor:', { id: chapter.id, content: chapter.content, wordCount: chapter.wordCount });
       setContent(chapter.content);
       setUnsavedChanges(false);
     }
@@ -101,10 +100,25 @@ const Editor: React.FC = () => {
     }
   }, [chapter?.content, setUnsavedChanges]);
 
+  // Handle navigation with unsaved changes check
+  const handleNavigation = useCallback((path: string) => {
+    console.log('Navigation requested to:', path, 'Unsaved changes:', unsavedChanges);
+    if (unsavedChanges) {
+      console.log('Showing unsaved changes modal');
+      setPendingNavigation(path);
+      setShowUnsavedModal(true);
+    } else {
+      console.log('No unsaved changes, navigating directly');
+      navigate(path);
+    }
+  }, [unsavedChanges, navigate]);
+
   // Handle unsaved changes modal actions
   const handleSaveAndContinue = async () => {
+    console.log('Save and continue clicked');
     await performSave();
     if (pendingNavigation) {
+      console.log('Navigating to:', pendingNavigation);
       navigate(pendingNavigation);
     }
     setShowUnsavedModal(false);
@@ -112,6 +126,7 @@ const Editor: React.FC = () => {
   };
 
   const handleDontSave = () => {
+    console.log('Don\'t save clicked, navigating to:', pendingNavigation);
     setUnsavedChanges(false);
     if (pendingNavigation) {
       navigate(pendingNavigation);
@@ -121,6 +136,7 @@ const Editor: React.FC = () => {
   };
 
   const handleCancel = () => {
+    console.log('Cancel clicked, staying on current page');
     setShowUnsavedModal(false);
     setPendingNavigation(null);
   };
@@ -179,7 +195,7 @@ const Editor: React.FC = () => {
               onSuccess={(newChapter) => {
                 setShowChapterCreator(false);
                 if (newChapter) {
-                  navigate(`/editor/${bookId}/${newChapter.id}`);
+                  handleNavigation(`/editor/${bookId}/${newChapter.id}`);
                 }
               }}
             />
@@ -214,7 +230,7 @@ const Editor: React.FC = () => {
                 {chapters.map((chapter) => (
                   <div
                     key={chapter.id}
-                    onClick={() => navigate(`/editor/${bookId}/${chapter.id}`)}
+                    onClick={() => handleNavigation(`/editor/${bookId}/${chapter.id}`)}
                     className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-chrome-green-50 hover:border-chrome-green-300 cursor-pointer transition-colors"
                   >
                     <div className="flex-1">
@@ -245,7 +261,7 @@ const Editor: React.FC = () => {
             onSuccess={(newChapter) => {
               setShowChapterCreator(false);
               if (newChapter) {
-                navigate(`/editor/${bookId}/${newChapter.id}`);
+                handleNavigation(`/editor/${bookId}/${newChapter.id}`);
               }
             }}
           />
@@ -281,7 +297,7 @@ const Editor: React.FC = () => {
               Select a book and chapter to start writing
             </p>
             <button
-              onClick={() => navigate('/books')}
+              onClick={() => handleNavigation('/books')}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-chrome-green-600 hover:bg-chrome-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-chrome-green-500"
             >
               Go to Books
@@ -312,12 +328,21 @@ const Editor: React.FC = () => {
                 <span className="text-chrome-green-600">Saving...</span>
               )}
               {unsavedChanges && !autoSaving && (
-                <span className="text-orange-600">Unsaved changes</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-orange-600">Unsaved changes</span>
+                  <button
+                    onClick={() => performSave()}
+                    className="px-2 py-1 text-xs bg-chrome-green-600 text-white rounded hover:bg-chrome-green-700 transition-colors"
+                    title="Save now"
+                  >
+                    Save
+                  </button>
+                </div>
               )}
             </div>
           </div>
           <button
-            onClick={() => navigate('/books')}
+            onClick={() => handleNavigation('/books')}
             className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900"
           >
             ← Back to Books

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import ScratchpadModal from './ScratchpadModal';
+import apiService from '../services/apiService';
 
 const NavigationBar: React.FC = () => {
   const { autoSaveEnabled, setAutoSaveEnabled, selectedBook } = useAppStore();
@@ -10,12 +11,41 @@ const NavigationBar: React.FC = () => {
     setAutoSaveEnabled(!autoSaveEnabled);
   };
 
-  const handleExport = () => {
-    if (selectedBook) {
-      // TODO: Implement export functionality
-      alert(`Export functionality for "${selectedBook.title}" coming soon!`);
-    } else {
-      alert('Please select a book to export.');
+  const handleSave = async () => {
+    if (!selectedBook) {
+      alert('Please select a book to save.');
+      return;
+    }
+
+    // Show format selection dialog
+    const format = window.prompt(
+      `Choose save format for "${selectedBook.title}":\n\n1. txt (Plain text)\n2. markdown (Markdown format)\n\nEnter "txt" or "markdown":`,
+      'txt'
+    );
+
+    if (!format || (format !== 'txt' && format !== 'markdown')) {
+      return; // User cancelled or entered invalid format
+    }
+
+    try {
+      // Call API to export the book
+      const exportResult = await apiService.exportBook(selectedBook.id, format as 'txt' | 'markdown');
+
+      // Create and trigger download
+      const element = document.createElement('a');
+      const file = new Blob([exportResult.content], { type: 'text/plain;charset=utf-8' });
+      element.href = URL.createObjectURL(file);
+      element.download = exportResult.filename;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+
+      // Clean up the URL object
+      URL.revokeObjectURL(element.href);
+
+    } catch (error) {
+      console.error('Error saving book:', error);
+      alert('Failed to save the book. Please try again.');
     }
   };
 
@@ -55,15 +85,15 @@ const NavigationBar: React.FC = () => {
 
         {/* Save/Export Button */}
         <button
-          onClick={handleExport}
+          onClick={handleSave}
           className="
             flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm
             bg-blue-100 text-blue-700 hover:bg-blue-200 border-2 border-blue-300
             transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-chrome-green-600
           "
-          title="Export current book"
-          aria-label="Export current book"
+          title="Save current book to file"
+          aria-label="Save current book to file"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

@@ -22,8 +22,7 @@ export const useBooks = () => {
   return useQuery({
     queryKey: queryKeys.books,
     queryFn: async () => {
-      const response = await bookAPI.getBooks();
-      const books = response.data.data || response.data;
+      const books = await apiService.getBooks();
       setBooks(books);
       return { data: books };
     },
@@ -46,9 +45,8 @@ export const useCreateBook = () => {
   const addBook = useAppStore((state) => state.addBook);
 
   return useMutation({
-    mutationFn: (data: CreateBookData) => bookAPI.createBook(data),
-    onSuccess: (response) => {
-      const newBook = response.data.data;
+    mutationFn: (data: CreateBookData) => apiService.createBook(data),
+    onSuccess: (newBook) => {
       addBook(newBook);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
     },
@@ -61,9 +59,8 @@ export const useUpdateBook = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateBookData }) =>
-      bookAPI.updateBook(id, data),
-    onSuccess: (response, variables) => {
-      const updatedBook = response.data;
+      apiService.updateBook(id, data),
+    onSuccess: (updatedBook, variables) => {
       updateBook(variables.id, updatedBook);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
       queryClient.invalidateQueries({ queryKey: queryKeys.book(variables.id) });
@@ -76,7 +73,7 @@ export const useDeleteBook = () => {
   const removeBook = useAppStore((state) => state.removeBook);
 
   return useMutation({
-    mutationFn: (id: number) => bookAPI.deleteBook(id),
+    mutationFn: (id: number) => apiService.deleteBook(id),
     onSuccess: (_, id) => {
       removeBook(id);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
@@ -106,7 +103,6 @@ export const useChapter = (id: number) => {
     queryKey: queryKeys.chapter(id),
     queryFn: async () => {
       const chapter = await apiService.getChapter(id);
-      console.log('Chapter data from apiService (should be camelCase):', chapter);
       return chapter;
     },
     enabled: !!id,
@@ -119,9 +115,8 @@ export const useCreateChapter = (bookId: number) => {
 
   return useMutation({
     mutationFn: (data: CreateChapterData) =>
-      chapterAPI.createChapter(bookId, data),
-    onSuccess: (response) => {
-      const newChapter = response.data.data;
+      apiService.createChapter(bookId, data),
+    onSuccess: (newChapter) => {
       addChapter(newChapter);
       queryClient.invalidateQueries({ queryKey: queryKeys.chapters(bookId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.books });

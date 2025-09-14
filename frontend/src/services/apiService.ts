@@ -287,12 +287,17 @@ class ApiService {
   }
 
   // Export functionality
-  async exportBook(bookId: number, format: 'pdf' | 'docx' | 'markdown', options?: RequestOptions): Promise<Blob> {
-    const response = await this.fetchRaw(`/books/${bookId}/export?format=${format}`, {
-      method: 'GET'
+  async exportBook(bookId: number, format: 'txt' | 'markdown', options?: RequestOptions): Promise<{
+    content: string;
+    filename: string;
+    format: string;
+    size: number;
+  }> {
+    return await this.fetch(`/books/${bookId}/export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ format })
     }, options);
-
-    return response.blob();
   }
 
   // Batch operations for efficiency
