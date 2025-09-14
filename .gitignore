@@ -3,55 +3,106 @@ node_modules/
 .pnp
 .pnp.js
 
-# Testing
+# Testing (exclude all test files and coverage for production)
 coverage/
 *.lcov
+src/tests/
+frontend/src/tests/
+backend/src/tests/
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+**/__tests__/
+jest.config.*
+vitest.config.*
 
-# Production
-dist/
-build/
-
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.claude/
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Editor directories and files
+# Development tools and configuration (not needed for PI deployment)
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+eslint.config.*
+.eslintrc.*
+prettier.config.*
+.prettierrc.*
+tsconfig.json
+vite.config.*
+tailwind.config.*
 
-# Database
+# Production builds (exclude source builds, keep only necessary for PI)
+dist/
+build/
+frontend/dist/
+frontend/build/
+backend/dist/
+backend/build/
+
+# Environment files (create fresh on PI)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs and runtime files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Database files (will be created fresh on PI)
 *.db
 *.sqlite
 *.sqlite3
 backend/database/*.db
+backend/database/*.sqlite*
 
-# OS files
+# OS and editor files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Claude Code artifacts - should not be committed to remote
+# Claude Code artifacts (development only)
 .claude/
 !.claude/specs/
 !.claude/docs/
 
-# Local settings and temporary files
+# Development artifacts and temporary files
 *.tmp
 *.temp
 .cache/
+screenshots/
+temp_*
+test-*
+chapter-data.json
+*_payload.json
+screenshot-*.js
+
+# Documentation and development notes (keep only essential docs)
+README.md
+!deployment/README.md
+!docs/deployment/
+DEVELOPMENT.md
+CONTRIBUTING.md
+
+# Package lock files (will be regenerated on PI)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript compilation artifacts
+*.tsbuildinfo
+.tsbuild/
+
+# Hot reload and development server artifacts
+.vite/
+.turbo/
+.next/
+.nuxt/
