@@ -70,10 +70,8 @@ backend/database/*.sqlite*
 Thumbs.db
 desktop.ini
 
-# Claude Code artifacts (development only)
+# Claude Code artifacts (development only - excluded from remote repo)
 .claude/
-!.claude/specs/
-!.claude/docs/
 
 # Development artifacts and temporary files
 *.tmp
