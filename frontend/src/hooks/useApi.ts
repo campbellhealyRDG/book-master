@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bookAPI, chapterAPI, dictionaryAPI, preferencesAPI, scratchpadAPI } from '../services/api';
+import { apiService } from '../services/apiService';
 import { useAppStore } from '../store';
 import { CreateBookData, UpdateBookData, CreateChapterData, UpdateChapterData } from '../types';
 
@@ -92,8 +93,7 @@ export const useChapters = (bookId: number) => {
   return useQuery({
     queryKey: queryKeys.chapters(bookId),
     queryFn: async () => {
-      const response = await chapterAPI.getChapters(bookId);
-      const chapters = response.data.data || response.data;
+      const chapters = await apiService.getChapters(bookId);
       setChapters(chapters);
       return { data: chapters };
     },
@@ -105,8 +105,9 @@ export const useChapter = (id: number) => {
   return useQuery({
     queryKey: queryKeys.chapter(id),
     queryFn: async () => {
-      const response = await chapterAPI.getChapter(id);
-      return response.data;
+      const chapter = await apiService.getChapter(id);
+      console.log('Chapter data from apiService (should be camelCase):', chapter);
+      return chapter;
     },
     enabled: !!id,
   });
@@ -135,9 +136,8 @@ export const useUpdateChapter = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateChapterData }) =>
-      chapterAPI.updateChapter(id, data),
-    onSuccess: (response, variables) => {
-      const updatedChapter = response.data;
+      apiService.updateChapter(id, data),
+    onSuccess: (updatedChapter, variables) => {
       updateChapter(variables.id, updatedChapter);
       setUnsavedChanges(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.chapter(variables.id) });

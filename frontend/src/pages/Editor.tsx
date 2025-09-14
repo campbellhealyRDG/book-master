@@ -30,6 +30,7 @@ const Editor: React.FC = () => {
   // Update content when chapter data loads
   useEffect(() => {
     if (chapter?.content !== undefined) {
+      console.log('Chapter loaded in Editor:', { id: chapter.id, content: chapter.content, wordCount: chapter.wordCount });
       setContent(chapter.content);
       setUnsavedChanges(false);
     }
@@ -39,6 +40,7 @@ const Editor: React.FC = () => {
   const performSave = useCallback(async () => {
     if (!chapterId || !unsavedChanges) return;
 
+    console.log('Auto-saving chapter...', { chapterId, contentLength: content.length });
     setAutoSaving(true);
     try {
       await updateChapterMutation.mutateAsync({
@@ -47,6 +49,7 @@ const Editor: React.FC = () => {
       });
       setLastSaved(new Date());
       setUnsavedChanges(false);
+      console.log('Chapter saved successfully');
     } catch (error) {
       console.error('Failed to save chapter:', error);
     } finally {
@@ -57,6 +60,7 @@ const Editor: React.FC = () => {
   // Listen for auto-save and manual save events
   useEffect(() => {
     const handleAutoSave = () => {
+      console.log('Auto-save event triggered', { autoSaveEnabled, unsavedChanges });
       if (autoSaveEnabled && unsavedChanges) {
         performSave();
       }
@@ -91,7 +95,11 @@ const Editor: React.FC = () => {
   // Handle content changes
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
-  }, []);
+    // Mark as having unsaved changes whenever content changes
+    if (newContent !== chapter?.content) {
+      setUnsavedChanges(true);
+    }
+  }, [chapter?.content, setUnsavedChanges]);
 
   // Handle unsaved changes modal actions
   const handleSaveAndContinue = async () => {
@@ -212,11 +220,11 @@ const Editor: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900">{chapter.title}</h3>
                       <div className="flex items-center mt-1 text-sm text-gray-500 space-x-4">
-                        <span>Chapter {(chapter as any).chapter_number || chapter.chapterNumber}</span>
+                        <span>Chapter {chapter.chapterNumber}</span>
                         <span>•</span>
-                        <span>{(chapter as any).word_count || chapter.wordCount || 0} words</span>
+                        <span>{chapter.wordCount || 0} words</span>
                         <span>•</span>
-                        <span>Updated {new Date((chapter as any).updated_at || chapter.updatedAt).toLocaleDateString()}</span>
+                        <span>Updated {new Date(chapter.updatedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                     <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

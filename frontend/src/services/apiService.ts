@@ -63,7 +63,7 @@ class ApiService {
   async createBook(bookData: CreateBookRequest, options?: RequestOptions): Promise<Book> {
     const book = await this.fetch<Book>('/books', {
       method: 'POST',
-      body: JSON.stringify(bookData),
+      body: JSON.stringify(this.transformCamelToSnake(bookData)),
       headers: { 'Content-Type': 'application/json' }
     }, options);
 
@@ -85,7 +85,7 @@ class ApiService {
     try {
       const book = await this.fetch<Book>(`/books/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(bookData),
+        body: JSON.stringify(this.transformCamelToSnake(bookData)),
         headers: { 'Content-Type': 'application/json' }
       }, options);
 
@@ -123,7 +123,7 @@ class ApiService {
 
     return this.cacheApiCall(
       cacheKey,
-      () => this.fetch<Chapter[]>(`/books/${bookId}/chapters`, { method: 'GET' }),
+      () => this.fetch<Chapter[]>(`/chapters/books/${bookId}/chapters`, { method: 'GET' }),
       options?.cacheTTL
     );
   }
@@ -144,9 +144,9 @@ class ApiService {
   }
 
   async createChapter(bookId: number, chapterData: CreateChapterRequest, options?: RequestOptions): Promise<Chapter> {
-    const chapter = await this.fetch<Chapter>(`/books/${bookId}/chapters`, {
+    const chapter = await this.fetch<Chapter>(`/chapters/books/${bookId}/chapters`, {
       method: 'POST',
-      body: JSON.stringify(chapterData),
+      body: JSON.stringify(this.transformCamelToSnake(chapterData)),
       headers: { 'Content-Type': 'application/json' }
     }, options);
 
@@ -168,13 +168,13 @@ class ApiService {
     try {
       const chapter = await this.fetch<Chapter>(`/chapters/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(chapterData),
+        body: JSON.stringify(this.transformCamelToSnake(chapterData)),
         headers: { 'Content-Type': 'application/json' }
       }, options);
 
       // Update caches with real data
       cacheService.set(`chapters:${id}`, chapter);
-      this.invalidateCache([`chapters:book:${chapter.book_id}`, `books:${chapter.book_id}`]);
+      this.invalidateCache([`chapters:book:${chapter.bookId}`, `books:${chapter.bookId}`]);
 
       return chapter;
     } catch (error) {
@@ -188,7 +188,7 @@ class ApiService {
 
   async deleteChapter(id: number, options?: RequestOptions): Promise<void> {
     const existingChapter = cacheService.get<Chapter>(`chapters:${id}`);
-    const bookId = existingChapter?.book_id;
+    const bookId = existingChapter?.bookId;
 
     await this.fetch<void>(`/chapters/${id}`, { method: 'DELETE' }, options);
 
@@ -389,7 +389,59 @@ class ApiService {
     requestOptions?: RequestOptions
   ): Promise<T> {
     const response = await this.fetchRaw(endpoint, options, requestOptions);
-    return response.json();
+    const json = await response.json();
+
+    // API returns data wrapped in { success: true, data: ... }
+    // Extract the data field if it exists
+    let data = json;
+    if (json && typeof json === 'object' && 'data' in json) {
+      data = json.data;
+    }
+
+    // Transform snake_case to camelCase for frontend compatibility
+    return this.transformSnakeToCamel(data);
+  }
+
+  private transformSnakeToCamel(data: any): any {
+    if (data === null || data === undefined) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.transformSnakeToCamel(item));
+    }
+
+    if (typeof data === 'object') {
+      const transformed: any = {};
+      for (const [key, value] of Object.entries(data)) {
+        const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        transformed[camelKey] = this.transformSnakeToCamel(value);
+      }
+      return transformed;
+    }
+
+    return data;
+  }
+
+  private transformCamelToSnake(data: any): any {
+    if (data === null || data === undefined) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.transformCamelToSnake(item));
+    }
+
+    if (typeof data === 'object') {
+      const transformed: any = {};
+      for (const [key, value] of Object.entries(data)) {
+        const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+        transformed[snakeKey] = this.transformCamelToSnake(value);
+      }
+      return transformed;
+    }
+
+    return data;
   }
 
   private async fetchRaw(
