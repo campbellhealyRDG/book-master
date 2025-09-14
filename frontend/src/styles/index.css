@@ -204,11 +204,11 @@ h3 {
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
   /* Touch targets should be at least 44x44px */
-  button,
+  button:not(.sidebar-nav-link),
   input,
   select,
   textarea,
-  a {
+  a:not(.sidebar-nav-link) {
     min-height: 44px;
     min-width: 44px;
   }
@@ -231,6 +231,26 @@ a:focus-visible,
 [role="button"]:focus-visible {
   outline: 2px solid var(--chrome-green-600);
   outline-offset: 2px;
+}
+
+/* Sidebar navigation minimal height override - FORCE OVERRIDE */
+#main-sidebar .sidebar-nav-container {
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+  gap: 1px !important;
+  min-height: auto !important;
+}
+
+#main-sidebar .sidebar-nav-link {
+  min-height: auto !important;
+  line-height: 1.1 !important;
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+  height: auto !important;
+}
+
+#main-sidebar .sidebar-nav-link * {
+  line-height: 1.1 !important;
 }
 
 /* Screen reader only content */

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { useAppStore } from '../store';
 import Sidebar from './Sidebar';
+import NavigationBar from './NavigationBar';
+import ScrollToTopButton from './ScrollToTopButton';
 
 const AppLayout: React.FC = () => {
   const { sidebarCollapsed, setSidebarCollapsed } = useAppStore();
@@ -74,13 +76,17 @@ const AppLayout: React.FC = () => {
                 </svg>
               </button>
               <div className="ml-2 sm:ml-3 min-w-0 flex-1">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">Book Master</h1>
-                <p className="text-xs text-chrome-green-100 hidden sm:block truncate">Professional British English Editor</p>
+                <Link
+                  to="/dashboard"
+                  className="block hover:text-chrome-green-200 transition-colors focus:outline-none focus:ring-2 focus:ring-chrome-green-300 focus:ring-offset-2 focus:ring-offset-chrome-green-600 rounded"
+                  aria-label="Go to Dashboard"
+                >
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">Book Master</h1>
+                </Link>
               </div>
             </div>
-            <div className="text-right hidden md:block ml-4 flex-shrink-0">
-              <p className="text-sm font-medium">Welcome to Book Master</p>
-              <p className="text-xs text-chrome-green-100">Manuscript editing made simple</p>
+            <div className="ml-4 flex-shrink-0">
+              <NavigationBar />
             </div>
           </div>
         </div>
@@ -121,6 +127,9 @@ const AppLayout: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bookAPI, chapterAPI, dictionaryAPI, preferencesAPI, scratchpadAPI } from '../services/api';
+import { apiService } from '../services/apiService';
 import { useAppStore } from '../store';
 import { CreateBookData, UpdateBookData, CreateChapterData, UpdateChapterData } from '../types';
 
@@ -21,10 +22,9 @@ export const useBooks = () => {
   return useQuery({
     queryKey: queryKeys.books,
     queryFn: async () => {
-      const response = await bookAPI.getBooks();
-      const books = response.data;
+      const books = await apiService.getBooks();
       setBooks(books);
-      return books;
+      return { data: books };
     },
   });
 };
@@ -45,9 +45,8 @@ export const useCreateBook = () => {
   const addBook = useAppStore((state) => state.addBook);
 
   return useMutation({
-    mutationFn: (data: CreateBookData) => bookAPI.createBook(data),
-    onSuccess: (response) => {
-      const newBook = response.data;
+    mutationFn: (data: CreateBookData) => apiService.createBook(data),
+    onSuccess: (newBook) => {
       addBook(newBook);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
     },
@@ -60,9 +59,8 @@ export const useUpdateBook = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateBookData }) =>
-      bookAPI.updateBook(id, data),
-    onSuccess: (response, variables) => {
-      const updatedBook = response.data;
+      apiService.updateBook(id, data),
+    onSuccess: (updatedBook, variables) => {
       updateBook(variables.id, updatedBook);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
       queryClient.invalidateQueries({ queryKey: queryKeys.book(variables.id) });
@@ -75,7 +73,7 @@ export const useDeleteBook = () => {
   const removeBook = useAppStore((state) => state.removeBook);
 
   return useMutation({
-    mutationFn: (id: number) => bookAPI.deleteBook(id),
+    mutationFn: (id: number) => apiService.deleteBook(id),
     onSuccess: (_, id) => {
       removeBook(id);
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
@@ -92,10 +90,9 @@ export const useChapters = (bookId: number) => {
   return useQuery({
     queryKey: queryKeys.chapters(bookId),
     queryFn: async () => {
-      const response = await chapterAPI.getChapters(bookId);
-      const chapters = response.data;
+      const chapters = await apiService.getChapters(bookId);
       setChapters(chapters);
-      return chapters;
+      return { data: chapters };
     },
     enabled: !!bookId,
   });
@@ -105,8 +102,8 @@ export const useChapter = (id: number) => {
   return useQuery({
     queryKey: queryKeys.chapter(id),
     queryFn: async () => {
-      const response = await chapterAPI.getChapter(id);
-      return response.data;
+      const chapter = await apiService.getChapter(id);
+      return chapter;
     },
     enabled: !!id,
   });
@@ -118,9 +115,8 @@ export const useCreateChapter = (bookId: number) => {
 
   return useMutation({
     mutationFn: (data: CreateChapterData) =>
-      chapterAPI.createChapter(bookId, data),
-    onSuccess: (response) => {
-      const newChapter = response.data;
+      apiService.createChapter(bookId, data),
+    onSuccess: (newChapter) => {
       addChapter(newChapter);
       queryClient.invalidateQueries({ queryKey: queryKeys.chapters(bookId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.books });
@@ -135,9 +131,8 @@ export const useUpdateChapter = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateChapterData }) =>
-      chapterAPI.updateChapter(id, data),
-    onSuccess: (response, variables) => {
-      const updatedChapter = response.data;
+      apiService.updateChapter(id, data),
+    onSuccess: (updatedChapter, variables) => {
       updateChapter(variables.id, updatedChapter);
       setUnsavedChanges(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.chapter(variables.id) });

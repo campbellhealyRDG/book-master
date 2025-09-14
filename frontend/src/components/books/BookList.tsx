@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../store';
 import { Book } from '../../types';
-import { useBooks } from '../../hooks/useApi';
+import { useBooks, useDeleteBook } from '../../hooks/useApi';
 import BookCreator from './BookCreator';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,12 +21,22 @@ const BookList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: booksData, isLoading, error, refetch } = useBooks();
+  const deleteBookMutation = useDeleteBook();
 
   useEffect(() => {
     if (booksData) {
       setBooks(booksData.data || []);
+
+      // If no books exist and not currently searching, redirect to dashboard with alert
+      if (booksData.data && booksData.data.length === 0 && !searchTerm) {
+        const timer = setTimeout(() => {
+          navigate('/dashboard?alert=no-books');
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      }
     }
-  }, [booksData, setBooks]);
+  }, [booksData, setBooks, searchTerm, navigate]);
 
   const handleSelectBook = (book: Book) => {
     setSelectedBookId(book.id);
@@ -36,17 +46,15 @@ const BookList: React.FC = () => {
 
   const handleDeleteBook = async (bookId: number, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     if (window.confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
       setDeletingBookId(bookId);
       try {
-        // API call will be handled by the hook
-        removeBook(bookId);
+        await deleteBookMutation.mutateAsync(bookId);
         if (selectedBookId === bookId) {
           setSelectedBookId(null);
           setSelectedBook(null);
         }
-        await refetch();
       } catch (error) {
         console.error('Failed to delete book:', error);
         alert('Failed to delete book. Please try again.');
@@ -159,94 +167,98 @@ const BookList: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="space-y-4">
           {filteredBooks.map((book) => (
             <div
               key={book.id}
               onClick={() => handleSelectBook(book)}
               className={`
                 relative bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer
-                transform hover:scale-105 border-2
-                ${selectedBookId === book.id 
-                  ? 'border-chrome-green-500 ring-2 ring-chrome-green-200' 
+                transform hover:scale-[1.01] border-2 flex items-center p-4
+                ${selectedBookId === book.id
+                  ? 'border-chrome-green-500 ring-2 ring-chrome-green-200'
                   : 'border-transparent hover:border-chrome-green-300'}
               `}
             >
               {/* Book Cover Placeholder */}
               <div className={`
-                h-48 rounded-t-lg flex items-center justify-center
-                ${selectedBookId === book.id 
-                  ? 'bg-gradient-to-br from-chrome-green-400 to-chrome-green-600' 
+                w-20 h-28 rounded-lg flex items-center justify-center flex-shrink-0 mr-6
+                ${selectedBookId === book.id
+                  ? 'bg-gradient-to-br from-chrome-green-400 to-chrome-green-600'
                   : 'bg-gradient-to-br from-gray-300 to-gray-400'}
               `}>
                 <svg
-                  className="h-24 w-24 text-white opacity-50"
+                  className="h-10 w-10 text-white opacity-70"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
 
               {/* Book Details */}
-              <div className="p-4">
-                <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
-                  {book.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-3 truncate">
-                  by {book.author}
-                </p>
-                
-                {/* Book Metadata */}
-                <div className="space-y-1 text-xs text-gray-500">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center">
-                      <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      {book.chapterCount || 0} chapters
-                    </span>
-                    <span className="flex items-center">
-                      <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      {book.wordCount || 0} words
-                    </span>
-                  </div>
-                  <div className="flex items-center text-gray-400">
-                    <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Updated {formatDate(book.updatedAt)}
-                  </div>
-                </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-xl text-gray-900 mb-1 truncate">
+                      {book.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3 truncate">
+                      by {book.author}
+                    </p>
 
-                {/* Action Buttons */}
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={(e) => handleEditBook(book, e)}
-                    className="flex-1 px-3 py-1 text-sm bg-chrome-green-100 text-chrome-green-700 rounded hover:bg-chrome-green-200 transition-colors"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => handleDeleteBook(book.id, e)}
-                    disabled={deletingBookId === book.id}
-                    className="flex-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50"
-                  >
-                    {deletingBookId === book.id ? 'Deleting...' : 'Delete'}
-                  </button>
+                    {/* Book Metadata */}
+                    <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        {(book as any).chapter_count || 0} chapters
+                      </span>
+                      <span className="flex items-center">
+                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {(book as any).word_count || 0} words
+                      </span>
+                      <span className="flex items-center">
+                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {(book as any).updated_at && (book as any).updated_at !== (book as any).created_at
+                          ? `Updated ${formatDate((book as any).updated_at)}`
+                          : `Created ${formatDate((book as any).created_at)}`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={(e) => handleEditBook(book, e)}
+                      className="px-4 py-2 text-sm bg-chrome-green-100 text-chrome-green-700 rounded hover:bg-chrome-green-200 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteBook(book.id, e)}
+                      disabled={deletingBookId === book.id}
+                      className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50"
+                    >
+                      {deletingBookId === book.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Selected Indicator */}
               {selectedBookId === book.id && (
-                <div className="absolute top-2 right-2 bg-chrome-green-500 text-white rounded-full p-1">
+                <div className="absolute top-4 left-4 bg-chrome-green-500 text-white rounded-full p-1">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
