@@ -94,8 +94,8 @@ function generateTextFormat(book: Book, chapters: Chapter[]): string {
   lines.push('BOOK INFORMATION:');
   lines.push(`Total Chapters: ${book.chapter_count}`);
   lines.push(`Total Words: ${book.word_count.toLocaleString()}`);
-  lines.push(`Created: ${new Date(book.created_at).toLocaleDateString('en-GB')}`);
-  lines.push(`Last Modified: ${new Date(book.updated_at).toLocaleDateString('en-GB')}`);
+  lines.push(`Created: ${book.created_at ? new Date(book.created_at).toLocaleDateString('en-GB') : 'Unknown'}`);
+  lines.push(`Last Modified: ${book.updated_at ? new Date(book.updated_at).toLocaleDateString('en-GB') : 'Unknown'}`);
   lines.push('');
   lines.push('-' .repeat(80));
   lines.push('');
@@ -160,8 +160,8 @@ function generateMarkdownFormat(book: Book, chapters: Chapter[]): string {
   lines.push('|-------|-------|');
   lines.push(`| Total Chapters | ${book.chapter_count} |`);
   lines.push(`| Total Words | ${book.word_count.toLocaleString()} |`);
-  lines.push(`| Created | ${new Date(book.created_at).toLocaleDateString('en-GB')} |`);
-  lines.push(`| Last Modified | ${new Date(book.updated_at).toLocaleDateString('en-GB')} |`);
+  lines.push(`| Created | ${book.created_at ? new Date(book.created_at).toLocaleDateString('en-GB') : 'Unknown'} |`);
+  lines.push(`| Last Modified | ${book.updated_at ? new Date(book.updated_at).toLocaleDateString('en-GB') : 'Unknown'} |`);
   lines.push('');
 
   // Table of contents
@@ -184,10 +184,10 @@ function generateMarkdownFormat(book: Book, chapters: Chapter[]): string {
   // Chapters
   chapters.forEach((chapter, index) => {
     // Chapter header
-    const chapterAnchor = chapter.title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-');
+    // const chapterAnchor = chapter.title
+    //   .toLowerCase()
+    //   .replace(/[^\w\s-]/g, '')
+    //   .replace(/\s+/g, '-');
 
     lines.push(`## Chapter ${chapter.chapter_number}: ${chapter.title}`);
     lines.push('');

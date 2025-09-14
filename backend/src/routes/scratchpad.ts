@@ -177,7 +177,7 @@ router.get('/statistics',
 // GET /api/scratchpad/backup - Create a backup of scratchpad content
 router.get('/backup',
   validateRequest([]),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const backupContent = await Scratchpad.backup();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     

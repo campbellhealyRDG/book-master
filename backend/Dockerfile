@@ -18,8 +18,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build TypeScript
-RUN npm run build
+# Skip TypeScript build for deployment - run directly from source
+# RUN npm run build
 
 # Production stage
 FROM node:18-alpine
@@ -36,8 +36,8 @@ COPY package*.json ./
 # Install only production dependencies
 RUN npm install --only=production
 
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
+# Copy source code and database from builder stage
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/src/database ./src/database
 
 # Create data directory for database
@@ -60,5 +60,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
 
-# Initialize database and start the application
-CMD ["sh", "-c", "npm run migrate && npm start"]
+# Initialize database and start the application using tsx
+CMD ["sh", "-c", "npm run migrate && tsx src/index.ts"]
